@@ -42,7 +42,7 @@ func main() {
 		log.Fatal("SECRET is empty")
 	}
 
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":8082")
 	if err != nil {
 		logger.Fatal("cannot listen", zap.Error(err))
 	}

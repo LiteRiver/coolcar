@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"coolcar/auth/api/gen/v1"
+	rentalpb "coolcar/rental/api/gen/v1"
 	"log"
 	"net/http"
 
@@ -29,7 +30,7 @@ func main() {
 	err := authpb.RegisterAuthServiceHandlerFromEndpoint(
 		ctx,
 		mux,
-		"localhost:8081",
+		"localhost:8082",
 		[]grpc.DialOption{
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		},
@@ -39,6 +40,18 @@ func main() {
 		log.Fatalf("cannot register auth service: %v\n", err)
 	}
 
-	log.Fatal(http.ListenAndServe(":8082", mux))
+	err = rentalpb.RegisterTripServiceHandlerFromEndpoint(
+		ctx,
+		mux,
+		"localhost:8083",
+		[]grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		},
+	)
 
+	if err != nil {
+		log.Fatalf("cannot register trip service: %v\n", err)
+	}
+	
+	log.Fatal(http.ListenAndServe(":8081", mux))
 }

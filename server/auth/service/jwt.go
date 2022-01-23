@@ -24,10 +24,7 @@ func CreateTokenProvider(issuer string, privateKey *rsa.PrivateKey) *TokenProvid
 
 func (t *TokenProvider) GenerateToken(accountId string, exipresIn time.Duration) (string, error) {
 	now := jwt.Time{Time: t.GetNow()}
-	fmt.Printf("now: %v\n", now)
 	expiresAt := jwt.Time{Time: now.Add(exipresIn)}
-
-	fmt.Printf("expiresIn: %v, exp: %v\n", exipresIn, expiresAt)
 
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodRS512,

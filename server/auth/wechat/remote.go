@@ -47,10 +47,6 @@ func (svc *Remote) GetOpenId(code string) (*OpenIdResponse, error) {
 		return nil, err
 	}
 
-	fmt.Println("------------OPEN ID--------------")
-	fmt.Printf("%s\n", body)
-	fmt.Println("---------------------------------")
-
 	var openIdRes OpenIdResponse
 	err = json.Unmarshal(body, &openIdRes)
 	if err != nil {
@@ -60,10 +56,6 @@ func (svc *Remote) GetOpenId(code string) (*OpenIdResponse, error) {
 	if openIdRes.ErrCode != 0 {
 		return nil, fmt.Errorf("%s", openIdRes.ErrMsg)
 	}
-
-	fmt.Println("------------OPEN ID JSON--------------")
-	fmt.Printf("session_key: %s, open_id: %s\n", openIdRes.SessionKey, openIdRes.OpenId)
-	fmt.Println("--------------------------------------")
 
 	return &openIdRes, nil
 }
