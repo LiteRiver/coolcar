@@ -5,9 +5,9 @@ import (
 	"coolcar/auth/dao"
 	"coolcar/auth/service"
 	"coolcar/auth/wechat"
+	"coolcar/shared/server"
 	"crypto/rsa"
 	"log"
-	"net"
 	"os"
 	"time"
 
@@ -24,10 +24,11 @@ type PrivateKeyProvider interface {
 }
 
 func main() {
-	logger, err := zap.NewDevelopment()
+	logger, err := server.NewZapLogger()
 	if err != nil {
 		log.Fatalf("cannot create logger: %v\n", err)
 	}
+
 	err = godotenv.Load()
 	if err != nil {
 		log.Fatalf("cannot load enviornment variables: %v\n", err)
@@ -37,14 +38,10 @@ func main() {
 	if len(appId) == 0 {
 		log.Fatal("APP_ID is empty")
 	}
+
 	secret := os.Getenv("SECRET")
 	if len(secret) == 0 {
 		log.Fatal("SECRET is empty")
-	}
-
-	lis, err := net.Listen("tcp", ":8082")
-	if err != nil {
-		logger.Fatal("cannot listen", zap.Error(err))
 	}
 
 	ctx := context.Background()
@@ -53,23 +50,29 @@ func main() {
 		logger.Fatal("cannot connect to database", zap.Error(err))
 	}
 
-	svr := grpc.NewServer()
-	var keyProvider PrivateKeyProvider = &service.FilePrivateKeyProvider{
-		Logger: logger,
-	}
-	authpb.RegisterAuthServiceServer(
-		svr, &service.OpenId{
+	logger.Sugar().Fatal(
+		server.RunGRPCServer(&server.GRPCConifg{
+			Name:   "auth",
+			Addr:   ":8082",
 			Logger: logger,
-			Mongo:  dao.Use(mgoClient.Database("coolcar")),
-			OpenIdProvider: &wechat.Remote{
-				AppId:  appId,
-				Secret: secret,
+			RegisterFunc: func(s *grpc.Server) {
+				authpb.RegisterAuthServiceServer(
+					s,
+					&service.OpenId{
+						Logger: logger,
+						Mongo:  dao.Use(mgoClient.Database("coolcar")),
+						OpenIdProvider: &wechat.Remote{
+							AppId:  appId,
+							Secret: secret,
+						},
+						TokenGenerator: service.CreateTokenProvider(
+							"coolcar/auth",
+							&service.FilePrivateKeyProvider{},
+						),
+						TokenExpiresIn: 2 * time.Hour,
+					},
+				)
 			},
-			TokenGenerator: service.CreateTokenProvider("coolcar/auth", keyProvider.GetPrivateKey(logger)),
-			TokenExpiresIn: 2 * time.Hour,
-		},
+		}),
 	)
-
-	err = svr.Serve(lis)
-	logger.Fatal("cannot serve", zap.Error(err))
 }

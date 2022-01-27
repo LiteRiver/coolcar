@@ -2,23 +2,25 @@ package service
 
 import (
 	"crypto/rsa"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
 type TokenProvider struct {
-	privateKey *rsa.PrivateKey
-	issuer     string
-	GetNow     func() time.Time
+	privateKeyProvider PrivateKeyProvider
+	issuer             string
+	GetNow             func() time.Time
+}
+type PrivateKeyProvider interface {
+	GetPrivateKey() (*rsa.PrivateKey, error)
 }
 
-func CreateTokenProvider(issuer string, privateKey *rsa.PrivateKey) *TokenProvider {
+func CreateTokenProvider(issuer string, privateKeyProvider PrivateKeyProvider) *TokenProvider {
 	return &TokenProvider{
-		issuer:     issuer,
-		privateKey: privateKey,
-		GetNow:     time.Now,
+		issuer:             issuer,
+		privateKeyProvider: privateKeyProvider,
+		GetNow:             time.Now,
 	}
 }
 
@@ -35,5 +37,10 @@ func (t *TokenProvider) GenerateToken(accountId string, exipresIn time.Duration)
 			Subject:   accountId,
 		})
 
-	return token.SignedString(t.privateKey)
+	privateKey, err := t.privateKeyProvider.GetPrivateKey()
+	if err != nil {
+		return "", nil
+	}
+
+	return token.SignedString(privateKey)
 }

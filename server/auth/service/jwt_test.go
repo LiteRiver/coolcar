@@ -1,6 +1,8 @@
 package service
 
 import (
+	"crypto/rsa"
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,12 +38,19 @@ TQrKhArgLXX4v3CddjfTRJkFWDbE/CkvKZNOrcf1nhaGCPspRJj2KUkj1Fhl9Cnc
 dn/RsYEONbwQSjIfMPkvxF+8HQ==
 -----END PRIVATE KEY-----`
 
-func TestGenerateToken(t *testing.T) {
+type plainPrivateKeyProvider struct{}
+
+func (p *plainPrivateKeyProvider) GetPrivateKey() (*rsa.PrivateKey, error) {
 	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
 	if err != nil {
-		t.Fatalf("cannot parse private key: %v", err)
+		return nil, fmt.Errorf("cannot parse private key: %v", err)
 	}
-	g := CreateTokenProvider("coolcar/auth", key)
+
+	return key, nil
+}
+
+func TestGenerateToken(t *testing.T) {
+	g := CreateTokenProvider("coolcar/auth", &plainPrivateKeyProvider{})
 	g.GetNow = func() time.Time {
 		return time.Unix(1642932453, 0)
 	}
