@@ -1,2 +1,22 @@
-<!--pages/index.wxml-->
-<text>pages/index.wxml</text>
+<map
+  id="map"
+  class="map"
+  latitude="{{location.latitude}}"
+  longitude="{{location.longitude}}"
+  show-compass="{{settings.showCompass}}"
+  show-location="{{settings.showLocation}}"
+  scale="{{settings.scale}}"
+  enable-zoom="{{settings.enableZoom}}"
+  enable-scroll="{{settings.enableScroll}}"
+  enable-3D="{{enable3D}}"
+  enable-overlooking="{{settings.enableOverlooking}}"
+  markers="{{markers}}"
+>
+  <view class="icon-container">
+    <cover-image class="icon" src="/images/account.png"></cover-image>
+    <cover-image class="icon" bind:tap="onMyLocationTap" src="/images/my-location.png"></cover-image>
+  </view>
+  <cover-view class="btn-container bg-grey round" bind:tap="moveCars">
+    扫码租车
+  </cover-view>
+</map>

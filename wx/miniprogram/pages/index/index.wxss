@@ -1,1 +1,41 @@
-/* pages/index.wxss */
+page {
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.icon-container {
+  position: absolute;
+  top: 10rpx;
+  left: 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  opacity: 0.6;
+}
+
+.icon {
+  width: 70rpx;
+  height: 70rpx;
+}
+
+.icon + .icon {
+  margin-top: 10rpx;
+}
+
+.btn-container {
+  position: absolute;
+  width: 600rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 7%;
+  height: 70rpx;
+  text-align: center;
+  line-height: 70rpx;
+  opacity: 0.8;
+}
