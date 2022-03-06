@@ -1,0 +1,38 @@
+page {
+  height: 100%;
+}
+
+.container {
+  justify-content: space-between;
+  height: 100%;
+}
+
+.desc-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30%;
+}
+
+.image-sedan {
+  width: 600rpx;
+  height: 201.6949152542373rpx;
+}
+
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-shown-box {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 8em;
+  align-items: center;
+}
+
+.btn-unlock {
+  width: 80% !important;
+}

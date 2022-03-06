@@ -1,0 +1,49 @@
+<view class="container">
+  <view class="license-container" wx:if="{{!driverLicenseUrl}}" bind:tap="onUploadLicense">
+    <image class="driver-license" src="/images/driver-license.png" />
+    <view class="cuIcon-camera lg icon-camera"></view>
+    <view class="instruction">请上传驾驶证照片</view>
+  </view>
+  <block wx:else>
+    <view class="license-container">
+      <image class="driver-license ready" src="{{driverLicenseUrl}}" />
+    </view>
+    <form class="margin-top-lg">
+      <view class="cu-form-group">
+        <view class="title">驾驶证号</view>
+        <input placeholder="驾驶证号" value="{{licenseNo}}" disabled="{{state !== 'UNSUBMITTED'}}"></input>
+      </view>
+      <view class="cu-form-group">
+        <view class="title">姓名</view>
+        <input placeholder="姓名" value="{{name}}" disabled="{{state !== 'UNSUBMITTED'}}"></input>
+      </view>
+      <view class="cu-form-group">
+        <view class="title">性别</view>
+        <picker
+          bindchange="onGenderChanged"
+          value="{{genderIndex}}"
+          range="{{genders}}"
+          disabled="{{state !== 'UNSUBMITTED'}}"
+        >
+          <view class="picker">{{genders[genderIndex]}}</view>
+        </picker>
+      </view>
+      <view class="cu-form-group">
+        <view class="title">日期选择</view>
+        <picker
+          mode="date"
+          value="{{dateOfBirth}}"
+          start="2015-09-01"
+          end="2020-09-01"
+          bindchange="onDateOfBirthChanged"
+          disabled="{{state !== 'UNSUBMITTED'}}"
+        >
+          <view class="picker">{{dateOfBirth}}</view>
+        </picker>
+      </view>
+    </form>
+    <button bind:tap="onSubmit" wx:if="{{state === 'UNSUBMITTED'}}" class="cu-btn bg-red lg margin-top-xl">递交审查</button>
+    <button wx:elif="{{state === 'PENDING'}}" class="cu-btn bg-red lg margin-top-xl" disabled="{{true}}">审查中</button>
+    <button bind:tap="onResubmit" wx:elif="{{state === 'VERIFIED'}}" class="cu-btn bg-red lg margin-top-xl">重新审查</button>
+  </block>
+</view>

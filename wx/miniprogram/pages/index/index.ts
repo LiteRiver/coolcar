@@ -1,5 +1,10 @@
+import { IAppOption } from "../../app-option"
+
+const app = getApp<IAppOption>()
+
 Page({
   isPageShowing: false,
+  avatarUrl: '',
   carLocation: {
     latitude: 23.099994,
     longitude: 113.32452,
@@ -81,11 +86,25 @@ Page({
 
     moveCar()
   },
-
+  onScanClicked() {
+    wx.scanCode({
+      success: () => {
+        wx.navigateTo({
+          url: "/pages/registration/registration",
+        })
+      },
+      fail: console.error,
+    })
+  },
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad() {},
+  async onLoad() {
+    const userInfo = await app.globalData.userInfo
+    this.setData({
+      avatarUrl: userInfo.avatarUrl,
+    })
+  },
 
   /**
    * 生命周期函数--监听页面初次渲染完成

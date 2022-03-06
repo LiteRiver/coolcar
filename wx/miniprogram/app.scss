@@ -1,4 +1,5 @@
 @import 'colorui/main.wxss';
+@import 'colorui/icon.wxss';
 
 /**app.wxss**/
 .container {
@@ -7,6 +8,5 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 200rpx 0;
   box-sizing: border-box;
 }

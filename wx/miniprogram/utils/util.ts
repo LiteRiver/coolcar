@@ -7,13 +7,31 @@ export const formatTime = (date: Date) => {
   const second = date.getSeconds()
 
   return (
-    [year, month, day].map(formatNumber).join('/') +
-    ' ' +
-    [hour, minute, second].map(formatNumber).join(':')
+    [year, month, day].map(formatNumber).join("/") +
+    " " +
+    [hour, minute, second].map(formatNumber).join(":")
   )
 }
 
 const formatNumber = (n: number) => {
   const s = n.toString()
-  return s[1] ? s : '0' + s
+  return s[1] ? s : "0" + s
+}
+
+export function getSetting(): Promise<WechatMiniprogram.GetSettingSuccessCallbackResult> {
+  return new Promise((resolve, reject) => {
+    wx.getSetting({
+      success: resolve,
+      fail: reject,
+    })
+  })
+}
+
+export function getUserInfo(): Promise<WechatMiniprogram.GetUserInfoSuccessCallbackResult> {
+  return new Promise((resolve, reject) => {
+    wx.getUserInfo({
+      success: resolve,
+      fail: reject,
+    })
+  })
 }
