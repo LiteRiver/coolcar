@@ -1,0 +1,22 @@
+<view class="container">
+  <map
+    id="map"
+    class="map"
+    latitude="{{location.latitude}}"
+    longitude="{{location.longitude}}"
+    show-location="{{true}}"
+    scale="{{scale}}"
+  ></map>
+
+  <view class="summary-container bg-grey">
+    <view class="time-container">
+      <text class="cuIcon-time"></text>
+      <text class="time-text">{{elapsed}}</text>
+    </view>
+    <view class="fee-container">
+      <text class="fee-title">费用：</text>
+      <text class="fee-text">{{fee}}</text>
+    </view>
+    <view class="cu-btn bg-red lg round btn-end-driving">结束行程</view>
+  </view>
+</view>

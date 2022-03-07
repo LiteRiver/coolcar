@@ -1,31 +1,23 @@
-import { IAppOption } from "../../app-option"
+import { IAppOption } from '../../app-option'
+import { getUserProfile } from '../../utils/wxapi'
 
 const app = getApp<IAppOption>()
-const ShareLocationKey = "share-location"
+const ShareLocationKey = 'share-location'
 
 Page({
-  /**
-   * 页面的初始数据
-   */
   data: {
     shareLocation: false,
-    avatarUrl: "",
+    avatarUrl: '',
   },
-
-  onGetUserInfo(e: any) {
-    const userInfo: WechatMiniprogram.UserInfo = e.detail.userInfo
-    if (userInfo) {
-      app.resolveUserInfo(e.detail.userInfo)
+  onGetUserProfile() {
+    getUserProfile().then((res) => {
+      app.resolveUserInfo(res.userInfo)
       this.setData({
         shareLocation: true,
       })
       wx.setStorageSync(ShareLocationKey, true)
-    }
+    })
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
   async onLoad() {
     const userInfo = await app.globalData.userInfo
     this.setData({
@@ -40,38 +32,36 @@ Page({
       shareLocation,
     })
   },
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {},
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {},
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {},
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {},
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {},
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {},
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {},
+  onUnlockClicked() {
+    wx.getLocation({
+      type: 'gcj02',
+      success: (loc) => {
+        console.log('starting a trip', {
+          location: {
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+          },
+          avatarUrl: this.data.shareLocation ? this.data.avatarUrl : '',
+        })
+        wx.showLoading({
+          title: '开锁中',
+          mask: true,
+        })
+        setTimeout(() => {
+          wx.redirectTo({
+            url: '/pages/driving/driving',
+            complete: () => {
+              wx.hideLoading()
+            },
+          })
+        }, 2000)
+      },
+      fail: () => {
+        wx.showToast({
+          icon: 'none',
+          title: '请前往设置页授权位置信息',
+        })
+      },
+    })
+  },
 })

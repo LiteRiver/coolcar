@@ -5,12 +5,7 @@
     <view>请将车辆停放在车位内</view>
   </view>
   <view class="avatar-container">
-    <button
-      wx:if="{{!avatarUrl}}"
-      class="cu-avatar round lg bg-grey"
-      open-type="getUserInfo"
-      bindgetuserinfo="onGetUserInfo"
-    >
+    <button wx:if="{{!avatarUrl}}" class="cu-avatar round lg bg-grey" bind:tap="onGetUserProfile">
       <text class="cuIcon-people"></text>
     </button>
     <view wx:else class="avatar-shown-box">
@@ -19,10 +14,5 @@
     </view>
     <view class="margin-top">实时展示我的头像</view>
   </view>
-  <button
-    class="cu-btn btn-unlock bg-grey lg margin-bottom-lg"
-    loading="{{loading}}"
-    disabled="{{disabled}}"
-    bindtap="onTap"
-  >立即开锁</button>
+  <button class="cu-btn btn-unlock bg-grey lg margin-bottom-lg" bindtap="onUnlockClicked">立即开锁</button>
 </view>

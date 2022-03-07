@@ -1,0 +1,38 @@
+page,
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+}
+
+.map {
+  width: 100%;
+  flex: 1;
+}
+
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 15rpx 0;
+}
+
+.time-text {
+  margin-left: 30rpx;
+  font-size: bold;
+}
+
+.time-container {
+  font-size: 50rpx;
+  line-height: 1em;
+}
+
+.fee-container {
+  margin-bottom: 15rpx;
+}
+
+.btn-end-driving {
+  width: 600rpx;
+}

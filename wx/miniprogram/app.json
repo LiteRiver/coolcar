@@ -2,7 +2,9 @@
   "pages": [
     "pages/index/index",
     "pages/registration/registration",
-    "pages/unlock/unlock"
+    "pages/unlock/unlock",
+    "pages/driving/driving",
+    "pages/mytrips/mytrips"
   ],
   "permission": {
     "scope.userLocation": {

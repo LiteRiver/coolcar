@@ -13,8 +13,7 @@
   markers="{{markers}}"
 >
   <view class="icon-container">
-    <cover-image wx:if="{{!avatarUrl}}" class="icon" src="/images/account.png"></cover-image>
-    <cover-image wx:if="{{avatarUrl}}" class="icon round" src="{{avatarUrl}}"></cover-image>
+    <cover-image class="icon round" src="{{ avatarUrl || '/images/account.png' }}" bind:tap="onMyTripsClicked"></cover-image>
     <cover-image class="icon" bind:tap="onMyLocationTap" src="/images/my-location.png"></cover-image>
   </view>
   <cover-view class="btn-container bg-grey round" bind:tap="onScanClicked">扫码租车</cover-view>

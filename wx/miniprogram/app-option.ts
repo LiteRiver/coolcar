@@ -3,4 +3,5 @@ export interface IAppOption {
     userInfo: Promise<WechatMiniprogram.UserInfo>
   }
   resolveUserInfo(userInfo: WechatMiniprogram.UserInfo): void
+  rejectUserInfo(reason?: any): void
 }

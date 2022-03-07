@@ -2,5 +2,13 @@
   "arrowParens": "always",
   "semi": false,
   "endOfLine": "lf",
-  "singleQuote": false
+  "singleQuote": true,
+  "overrides": [
+    {
+      "files": "*.wxml",
+      "options": {
+        "singleQuote": false
+      }
+    }
+  ]
 }

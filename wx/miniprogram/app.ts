@@ -1,12 +1,11 @@
 import { IAppOption } from "./app-option"
-import { getSetting, getUserInfo } from "./utils/util"
+// import { getSetting, getUserInfo } from './utils/wxapi'
 
 let resolveUserInfo: (
   value: WechatMiniprogram.UserInfo | PromiseLike<WechatMiniprogram.UserInfo>
 ) => void
 let rejectUserInfo: (reason: any) => void
 
-// app.ts
 App<IAppOption>({
   globalData: {
     userInfo: new Promise((resolve, reject) => {
@@ -14,28 +13,11 @@ App<IAppOption>({
       rejectUserInfo = reject
     }),
   },
-  async onLaunch() {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync("logs") || []
-    logs.unshift(Date.now())
-    wx.setStorageSync("logs", logs)
-
-    // getSetting()
-    //   .then((res) => {
-    //     if (res.authSetting["scope.userInfo"]) {
-    //       return getUserInfo()
-    //     }
-    //     return undefined
-    //   })
-    //   .then((res) => {
-    //     if (!res) {
-    //       return
-    //     }
-    //     resolveUserInfo(res.userInfo)
-    //   })
-    //   .catch(rejectUserInfo)
-  },
+  onLaunch() {},
   resolveUserInfo(userInfo: WechatMiniprogram.UserInfo) {
     resolveUserInfo(userInfo)
+  },
+  rejectUserInfo(reason?: any) {
+    rejectUserInfo(reason)
   },
 })

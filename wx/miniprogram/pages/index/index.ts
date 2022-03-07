@@ -1,6 +1,4 @@
-import { IAppOption } from "../../app-option"
-
-const app = getApp<IAppOption>()
+import { IAppOption } from '../../app-option'
 
 Page({
   isPageShowing: false,
@@ -25,7 +23,7 @@ Page({
     },
     markers: [
       {
-        iconPath: "/images/car.png",
+        iconPath: '/images/car.png',
         id: 0,
         latitude: 23.099994,
         longitude: 113.32452,
@@ -33,7 +31,7 @@ Page({
         height: 50,
       },
       {
-        iconPath: "/images/car.png",
+        iconPath: '/images/car.png',
         id: 0,
         latitude: 23.099994,
         longitude: 114.32452,
@@ -42,9 +40,15 @@ Page({
       },
     ],
   },
+  async onLoad() {
+    const userInfo = await getApp<IAppOption>().globalData.userInfo
+    this.setData({
+      avatarUrl: userInfo.avatarUrl,
+    })
+  },
   onMyLocationTap() {
     wx.getLocation({
-      type: "gcj02",
+      type: 'gcj02',
       success: (res) => {
         this.setData({
           location: {
@@ -55,14 +59,19 @@ Page({
       },
       fail: () => {
         wx.showToast({
-          icon: "none",
-          title: "请前往设置页授权",
+          icon: 'none',
+          title: '请前往设置页授权',
         })
       },
     })
   },
+  onMyTripsClicked() {
+    wx.navigateTo({
+      url: '/pages/mytrips/mytrips',
+    })
+  },
   moveCars() {
-    const map = wx.createMapContext("map")
+    const map = wx.createMapContext('map')
 
     const moveCar = () => {
       this.carLocation.latitude += 0.1
@@ -90,58 +99,10 @@ Page({
     wx.scanCode({
       success: () => {
         wx.navigateTo({
-          url: "/pages/registration/registration",
+          url: '/pages/registration/registration',
         })
       },
       fail: console.error,
     })
   },
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  async onLoad() {
-    const userInfo = await app.globalData.userInfo
-    this.setData({
-      avatarUrl: userInfo.avatarUrl,
-    })
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {},
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-    this.isPageShowing = true
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-    this.isPageShowing = false
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {},
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {},
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {},
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {},
 })
