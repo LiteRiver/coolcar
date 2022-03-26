@@ -12,3 +12,43 @@ swiper {
   width: 100%;
   height: 100%;
 }
+
+.trips-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.trips-container swiper {
+  width: 200rpx;
+}
+
+.nav .cu-item {
+  padding: unset;
+}
+
+.nav .cu-item.cur {
+  border-bottom: unset;
+}
+
+.trip {
+  border-radius: 20rpx;
+  margin: 20rpx;
+}
+
+.trip-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.details-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.details-r {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
