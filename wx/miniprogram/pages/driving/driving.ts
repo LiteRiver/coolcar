@@ -2,7 +2,7 @@ const centsPerSec = 0.7
 
 function formatDuration(sec: number) {
   const padStr = (n: number) => {
-    return n.toFixed(0).padStart(2, "0")
+    return n.toFixed(0).padStart(2, '0')
   }
   const h = Math.floor(sec / 3600)
   sec -= h * 3600
@@ -25,8 +25,8 @@ Page({
       longitude: 118.46,
     },
     scale: 14,
-    elapsed: "00:00:00",
-    fee: "0.00元",
+    elapsed: '00:00:00',
+    fee: '0.00元',
   },
   onLoad() {
     this.setupLocationUpdator()
@@ -64,5 +64,10 @@ Page({
         fee: formatFee(cents),
       })
     }, 1000)
+  },
+  onEndClicked() {
+    wx.redirectTo({
+      url: '/pages/mytrips/mytrips',
+    })
   },
 })

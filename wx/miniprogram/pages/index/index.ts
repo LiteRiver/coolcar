@@ -97,7 +97,8 @@ Page({
   },
   onScanClicked() {
     wx.scanCode({
-      success: () => {
+      success: async () => {
+        await this.selectComponent('#licModal').showModal()
         wx.navigateTo({
           url: '/pages/registration/registration',
         })

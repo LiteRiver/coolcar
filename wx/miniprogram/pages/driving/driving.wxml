@@ -17,6 +17,6 @@
       <text class="fee-title">费用：</text>
       <text class="fee-text">{{fee}}</text>
     </view>
-    <view class="cu-btn bg-red lg round btn-end-driving">结束行程</view>
+    <view class="cu-btn bg-red lg round btn-end-driving" bind:tap="onEndClicked">结束行程</view>
   </view>
 </view>

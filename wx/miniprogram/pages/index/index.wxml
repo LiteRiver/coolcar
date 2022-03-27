@@ -18,3 +18,4 @@
   </view>
   <cover-view class="btn-container bg-grey round" bind:tap="onScanClicked">扫码租车</cover-view>
 </map>
+<modal id="licModal" bind:ok="onModalOk"  title="身份认证" contents="需要身份认证才能租车"></modal>

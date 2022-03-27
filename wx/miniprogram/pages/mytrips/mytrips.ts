@@ -47,7 +47,7 @@ Page({
     mainItems: [] as MainItem[],
     navItems: [] as NavItem[],
     mainScroll: '',
-    navScroll: '',
+    navScroll: ''
   },
   onLoad() {
     this.populateTrips()
@@ -152,8 +152,5 @@ Page({
       activeNavItem: activeItem.dataset.navId,
       navScroll: activeItem.dataset.navScrollId,
     })
-  },
-  onSwiperChanged(e: any) {
-    console.log(e.detail)
   },
 })

@@ -6,7 +6,6 @@
     duration="{{500}}"
     circular="{{true}}"
     current="{{current}}"
-    bindchange="onSwiperChanged"
   >
     <block wx:for="{{imageUrls}}" wx:key="*this">
       <swiper-item>
