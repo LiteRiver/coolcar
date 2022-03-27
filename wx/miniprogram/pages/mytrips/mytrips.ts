@@ -11,6 +11,7 @@ interface Trip {
 interface MainItem {
   mainId: string
   navId: string
+  navScrollId: string
   data: Trip
 }
 
@@ -20,7 +21,19 @@ interface NavItem {
   label: string
 }
 
+interface MainItemState {
+  mainId: string
+  top: number
+  dataset: {
+    navId: string
+    navScrollId: string
+  }
+}
+
 Page({
+  scrollStates: {
+    mainItems: [] as MainItemState[],
+  },
   data: {
     imageUrls: [
       'https://img2.mukewang.com/622211a20001a95817920764.jpg',
@@ -34,6 +47,7 @@ Page({
     mainItems: [] as MainItem[],
     navItems: [] as NavItem[],
     mainScroll: '',
+    navScroll: '',
   },
   onLoad() {
     this.populateTrips()
@@ -65,13 +79,18 @@ Page({
     const mainItems: MainItem[] = []
     const navItems: NavItem[] = []
     let activeNavItem = ''
+    let prevNav = ''
     for (let i = 0; i < 100; i++) {
       const mainId = `main-${i}`
       const navId = `nav-${i}`
       const tripId = (10001 + i).toString()
+      if (!prevNav) {
+        prevNav = navId
+      }
       mainItems.push({
         mainId,
         navId,
+        navScrollId: prevNav,
         data: {
           id: tripId,
           start: '东方明珠',
@@ -92,11 +111,46 @@ Page({
       if (i === 0) {
         activeNavItem = navId
       }
+
+      prevNav = navId
     }
+    this.setData(
+      {
+        mainItems,
+        navItems,
+        activeNavItem,
+      },
+      () => {
+        this.prepareScrollStates()
+      }
+    )
+  },
+  prepareScrollStates() {
+    wx.createSelectorQuery()
+      .selectAll('.trip')
+      .fields({
+        id: true,
+        dataset: true,
+        rect: true,
+      })
+      .exec((res) => {
+        this.scrollStates.mainItems = res[0]
+      })
+  },
+  onMainScroll(e: any) {
+    const top: number = e.currentTarget?.offsetTop + e.detail?.scrollTop
+    if (top === undefined) {
+      return
+    }
+
+    const activeItem = this.scrollStates.mainItems.find((i) => i.top >= top)
+    if (!activeItem) {
+      return
+    }
+
     this.setData({
-      mainItems,
-      navItems,
-      activeNavItem,
+      activeNavItem: activeItem.dataset.navId,
+      navScroll: activeItem.dataset.navScrollId,
     })
   },
   onSwiperChanged(e: any) {
