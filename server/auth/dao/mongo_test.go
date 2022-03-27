@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	mgutil "coolcar/shared/mongo"
 	mongotesting "coolcar/shared/mongo/testing"
 	"os"
 	"testing"
@@ -25,12 +26,12 @@ func TestGetAccountId(t *testing.T) {
 
 	_, err = mgo.col.InsertMany(ctx, []interface{}{
 		bson.M{
-			"_id":     mustObjId("61e6f5f063f1d007f671b034"),
-			"open_id": "open_id_1",
+			mgutil.IdFieldName: mustObjId("61e6f5f063f1d007f671b034"),
+			"open_id":          "open_id_1",
 		},
 		bson.M{
-			"_id":     mustObjId("61e6f5f063f1d007f671b027"),
-			"open_id": "open_id_2",
+			mgutil.IdFieldName: mustObjId("61e6f5f063f1d007f671b027"),
+			"open_id":          "open_id_2",
 		},
 	})
 
@@ -38,7 +39,7 @@ func TestGetAccountId(t *testing.T) {
 		t.Fatalf("cannot insert initial values: %v", err)
 	}
 
-	mgo.newObjectId = func() primitive.ObjectID {
+	mgutil.NewObjectID = func() primitive.ObjectID {
 		objId, _ := primitive.ObjectIDFromHex("61e6f5f063f1d007f671b022")
 		return objId
 	}
