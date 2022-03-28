@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"coolcar/shared/auth/token"
+	"coolcar/shared/id"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -63,7 +64,7 @@ func (i *interceptor) HandleReq(ctx context.Context, req interface{}, info *grpc
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
 	}
 
-	return handler(ContextWithAccountId(ctx, AccountId(accountId)), req)
+	return handler(ContextWithAccountId(ctx, id.AccountId(accountId)), req)
 }
 
 func tokenFromContext(ctx context.Context) (string, error) {
@@ -88,19 +89,14 @@ func tokenFromContext(ctx context.Context) (string, error) {
 
 type accountIdKey struct{}
 
-type AccountId string
 
-func (a AccountId) String() string {
-	return string(a)
-}
-
-func ContextWithAccountId(ctx context.Context, accountId AccountId) context.Context {
+func ContextWithAccountId(ctx context.Context, accountId id.AccountId) context.Context {
 	return context.WithValue(ctx, accountIdKey{}, accountId)
 }
 
-func AccountIdFromContext(ctx context.Context) (AccountId, error) {
+func AccountIdFromContext(ctx context.Context) (id.AccountId, error) {
 	v := ctx.Value(accountIdKey{})
-	accountId, ok := v.(AccountId)
+	accountId, ok := v.(id.AccountId)
 	if !ok {
 		return "", status.Error(codes.Unauthenticated, "")
 	}

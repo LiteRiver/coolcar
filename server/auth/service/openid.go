@@ -41,7 +41,7 @@ func (svc *OpenId) Login(ctx context.Context, req *authpb.LoginRequest) (*authpb
 		return nil, status.Error(codes.Internal, "")
 	}
 
-	token, err := svc.TokenGenerator.GenerateToken(accountId, svc.TokenExpiresIn)
+	token, err := svc.TokenGenerator.GenerateToken(accountId.String(), svc.TokenExpiresIn)
 	if err != nil {
 		svc.Logger.Error("cannot generate token", zap.Error(err))
 		return nil, status.Error(codes.Internal, "")

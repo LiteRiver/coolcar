@@ -3,6 +3,8 @@ package dao
 import (
 	"context"
 	rentalpb "coolcar/rental/api/gen/v1"
+	"coolcar/shared/id"
+	"coolcar/shared/mongo/objid"
 	mongotesting "coolcar/shared/mongo/testing"
 	"os"
 	"testing"
@@ -22,8 +24,9 @@ func TestCreateTrip(t *testing.T) {
 	}
 
 	mgo := Use(mc.Database("coolcar"))
+	acctId := id.AccountId("account1")
 	row, err := mgo.CreateTrip(ctx, &rentalpb.Trip{
-		AccountId: "account1",
+		AccountId: acctId.String(),
 		CarId:     "car1",
 		Start: &rentalpb.LocationStatus{
 			PointName: "start1",
@@ -50,7 +53,7 @@ func TestCreateTrip(t *testing.T) {
 
 	t.Errorf("inserted row %s with updatedat %v", row.Id, row.UpdatedAt)
 
-	got, err := mgo.GetTrip(ctx, row.Id.Hex(), "account1")
+	got, err := mgo.GetTrip(ctx, objid.ToTripId(row.Id), acctId)
 	if err != nil {
 		t.Errorf("can not get trip: %v", err)
 	}

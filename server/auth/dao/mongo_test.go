@@ -2,7 +2,9 @@ package dao
 
 import (
 	"context"
+	"coolcar/shared/id"
 	mgutil "coolcar/shared/mongo"
+	"coolcar/shared/mongo/objid"
 	mongotesting "coolcar/shared/mongo/testing"
 	"os"
 	"testing"
@@ -26,11 +28,11 @@ func TestGetAccountId(t *testing.T) {
 
 	_, err = mgo.col.InsertMany(ctx, []interface{}{
 		bson.M{
-			mgutil.IdFieldName: mustObjId("61e6f5f063f1d007f671b034"),
+			mgutil.IdFieldName: objid.EnsureObjId(id.AccountId("61e6f5f063f1d007f671b034")),
 			"open_id":          "open_id_1",
 		},
 		bson.M{
-			mgutil.IdFieldName: mustObjId("61e6f5f063f1d007f671b027"),
+			mgutil.IdFieldName: objid.EnsureObjId(id.AccountId("61e6f5f063f1d007f671b027")),
 			"open_id":          "open_id_2",
 		},
 	})
@@ -73,20 +75,11 @@ func TestGetAccountId(t *testing.T) {
 				t.Errorf("failed to getAccountId: %v", err)
 			}
 
-			if id != cs.want {
+			if id.String() != cs.want {
 				t.Errorf("getAccountId, want: %q, got: %q", cs.want, id)
 			}
 		})
 	}
-}
-
-func mustObjId(hex string) primitive.ObjectID {
-	objId, err := primitive.ObjectIDFromHex(hex)
-	if err != nil {
-		panic(err)
-	}
-
-	return objId
 }
 
 func TestMain(m *testing.M) {
