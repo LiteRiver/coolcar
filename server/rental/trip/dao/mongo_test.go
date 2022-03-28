@@ -77,9 +77,7 @@ func TestCreateTrip(t *testing.T) {
 
 	mgo := Use(db)
 	for _, cc := range cases {
-		mgutil.NewObjectID = func() primitive.ObjectID {
-			return objid.EnsureObjId(id.TripId(cc.tripId))
-		}
+		mgutil.NewObjIdWithValue(id.TripId(cc.tripId))
 
 		row, err := mgo.CreateTrip(ctx, &rentalpb.Trip{
 			AccountId: cc.accountId,
@@ -112,7 +110,7 @@ func TestGetTrip(t *testing.T) {
 	}
 
 	mgo := Use(mc.Database("coolcar"))
-	mgutil.NewObjectID = primitive.NewObjectID
+	mgutil.NewObjectId = primitive.NewObjectID
 	acctId := id.AccountId("account1")
 	row, err := mgo.CreateTrip(ctx, &rentalpb.Trip{
 		AccountId: acctId.String(),
@@ -147,6 +145,101 @@ func TestGetTrip(t *testing.T) {
 
 	if diff := cmp.Diff(row, got, protocmp.Transform()); diff != "" {
 		t.Errorf("result different; -want +got: %s", diff)
+	}
+}
+
+func TestGetTrips(t *testing.T) {
+	ctx := context.Background()
+	mc, err := mongotesting.NewClient(ctx)
+	if err != nil {
+		t.Fatalf("cannot connect to database: %v", err)
+	}
+
+	mgo := Use(mc.Database("coolcar"))
+
+	rows := []struct {
+		id        string
+		accountId id.AccountId
+		status    rentalpb.TripStatus
+	}{
+		{
+			id:        "61f2b7ef729f5d8b3bc69be4",
+			accountId: "account_id_for_get_trips",
+			status:    rentalpb.TripStatus_FINISHED,
+		},
+		{
+			id:        "61f2b7ef729f5d8b3bc69be5",
+			accountId: "account_id_for_get_trips",
+			status:    rentalpb.TripStatus_FINISHED,
+		},
+		{
+			id:        "61f2b7ef729f5d8b3bc69be6",
+			accountId: "account_id_for_get_trips",
+			status:    rentalpb.TripStatus_FINISHED,
+		},
+		{
+			id:        "61f2b7ef729f5d8b3bc69be7",
+			accountId: "account_id_for_get_trips",
+			status:    rentalpb.TripStatus_IN_PROGRESS,
+		},
+		{
+			id:        "61f2b7ef729f5d8b3bc69be8",
+			accountId: "account_id_for_get_trips_1",
+			status:    rentalpb.TripStatus_IN_PROGRESS,
+		},
+	}
+
+	for _, r := range rows {
+		mgutil.NewObjIdWithValue(id.TripId(r.id))
+		_, err := mgo.CreateTrip(ctx, &rentalpb.Trip{
+			AccountId: r.accountId.String(),
+			Status:    r.status,
+		})
+
+		if err != nil {
+			t.Fatalf("cannot create rows: %v", err)
+		}
+	}
+
+	cases := []struct {
+		name       string
+		accountId  string
+		status     rentalpb.TripStatus
+		wantCount  int
+		wantOnlyId string
+	}{
+		{
+			name:      "get_all",
+			accountId: "account_id_for_get_trips",
+			status:    rentalpb.TripStatus_TS_NOT_SPECIFIED,
+			wantCount: 4,
+		},
+		{
+			name:       "get_in_progress",
+			accountId:  "account_id_for_get_trips",
+			status: rentalpb.TripStatus_IN_PROGRESS,
+			wantCount:  1,
+			wantOnlyId: "61f2b7ef729f5d8b3bc69be7",
+		},
+	}
+
+	for _, cc := range cases {
+		t.Run(cc.name, func(t *testing.T) {
+			res, err := mgo.GetTrips(context.Background(), id.AccountId(cc.accountId), cc.status)
+			if err != nil {
+				t.Errorf("cannot get trips: %v", err)
+			}
+
+			if cc.wantCount != len(res) {
+				t.Errorf("incorrect result count; want: %d, got: %d", cc.wantCount, len(res))
+			}
+
+			if cc.wantOnlyId != "" && len(res) > 0 {
+				if cc.wantOnlyId != res[0].Id.Hex() {
+					t.Errorf("only_id incorrect; want: %q, got: %q", cc.accountId, res[0].Id.Hex())
+				}
+			}
+		})
 	}
 }
 

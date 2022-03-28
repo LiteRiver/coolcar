@@ -23,7 +23,7 @@ func Use(db *mongo.Database) *Mongo {
 }
 
 func (mgo *Mongo) GetAccountId(ctx context.Context, openId string) (id.AccountId, error) {
-	insertedId := mgutil.NewObjectID()
+	insertedId := mgutil.NewObjectId()
 	ret := mgo.col.FindOneAndUpdate(ctx, bson.M{
 		"open_id": openId,
 	},

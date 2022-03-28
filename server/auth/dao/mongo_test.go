@@ -39,10 +39,7 @@ func TestGetAccountId(t *testing.T) {
 		t.Fatalf("cannot insert initial values: %v", err)
 	}
 
-	mgutil.NewObjectID = func() primitive.ObjectID {
-		objId, _ := primitive.ObjectIDFromHex("61e6f5f063f1d007f671b022")
-		return objId
-	}
+	mgutil.NewObjIdWithValue(id.AccountId("61e6f5f063f1d007f671b022"))
 
 	cases := []struct {
 		name   string

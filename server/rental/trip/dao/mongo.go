@@ -16,6 +16,7 @@ import (
 const (
 	tripField      = "trip"
 	accountIdField = tripField + ".accountid"
+	statusField    = tripField + ".status"
 )
 
 type Mongo struct {
@@ -36,14 +37,12 @@ type TripRow struct {
 	Trip                  *rentalpb.Trip `bson:"trip"`
 }
 
-// TODO: 表格驱动测试
-
 func (m *Mongo) CreateTrip(c context.Context, trip *rentalpb.Trip) (*TripRow, error) {
 	r := &TripRow{
 		Trip: trip,
 	}
 
-	r.Id = mgutil.NewObjectID()
+	r.Id = mgutil.NewObjectId()
 	r.UpdatedAt = mgutil.UpdatedAt()
 	_, err := m.col.InsertOne(c, r)
 	if err != nil {
@@ -74,4 +73,32 @@ func (m *Mongo) GetTrip(c context.Context, id id.TripId, accountId id.AccountId)
 	}
 
 	return &row, nil
+}
+
+func (m *Mongo) GetTrips(c context.Context, accountId id.AccountId, status rentalpb.TripStatus) ([]*TripRow, error) {
+	filter := bson.M{
+		accountIdField: accountId.String(),
+	}
+
+	if status != rentalpb.TripStatus_TS_NOT_SPECIFIED {
+		filter[statusField] = status
+	}
+
+	res, err := m.col.Find(c, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var trips []*TripRow
+	for res.Next(c) {
+		var row TripRow
+		err := res.Decode(&row)
+		if err != nil {
+			return nil, err
+		}
+
+		trips = append(trips, &row)
+	}
+
+	return trips, nil
 }
