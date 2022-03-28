@@ -9,6 +9,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -16,7 +19,11 @@ const (
 	containerPort = "27017/tcp"
 )
 
-func RunWithMongoInDocker(m *testing.M, mongoURI *string) int {
+var mongoURI string
+
+const defaultMongoURI = "mongodb://localhost:27017"
+
+func RunWithMongoInDocker(m *testing.M) int {
 	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
@@ -72,7 +79,53 @@ func RunWithMongoInDocker(m *testing.M, mongoURI *string) int {
 	}
 
 	host := insp.NetworkSettings.Ports[containerPort][0]
-	*mongoURI = fmt.Sprintf("mongodb://%s:%s", host.HostIP, host.HostPort)
+	mongoURI = fmt.Sprintf("mongodb://%s:%s", host.HostIP, host.HostPort)
 
 	return m.Run()
+}
+
+func NewClient(c context.Context) (*mongo.Client, error) {
+	if mongoURI == "" {
+		return nil, fmt.Errorf("mongoURI not set. please run RunWithMongoInDocker in TestMain")
+	}
+
+	return mongo.Connect(c, options.Client().ApplyURI(mongoURI))
+}
+
+func NewDefaultClient(c context.Context) (*mongo.Client, error) {
+	return NewClient(c)
+}
+
+func SetupIndices(c context.Context, db *mongo.Database) error {
+	_, err := db.Collection("accounts").Indexes().CreateOne(c, mongo.IndexModel{
+		Keys: bson.D{
+			{
+				Key:   "opne_id",
+				Value: 1,
+			},
+		},
+		Options: options.Index().SetUnique(true),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Collection("trips").Indexes().CreateOne(c, mongo.IndexModel{
+		Keys: bson.D{
+			{
+				Key:   "trip.accountid",
+				Value: 1,
+			},
+			{
+				Key:   "trip.status",
+				Value: 1,
+			},
+		},
+		Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{
+			"trip.status": 1,
+		}),
+	})
+
+	return err
 }

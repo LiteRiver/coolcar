@@ -11,15 +11,13 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var mongoURI string
 
 func TestGetAccountId(t *testing.T) {
 	ctx := context.Background()
-	mc, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	mc, err := mongotesting.NewDefaultClient(ctx)
 	if err != nil {
 		t.Fatalf("cannot connect to database: %v", err)
 	}
@@ -83,5 +81,5 @@ func TestGetAccountId(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	os.Exit(mongotesting.RunWithMongoInDocker(m, &mongoURI))
+	os.Exit(mongotesting.RunWithMongoInDocker(m))
 }
