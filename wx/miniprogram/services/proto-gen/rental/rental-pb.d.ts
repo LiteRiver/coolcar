@@ -494,8 +494,8 @@ export namespace rental {
             /** UpdateTripRequest id */
             id?: (string|null);
 
-            /** UpdateTripRequest currentt */
-            currentt?: (rental.v1.ILocation|null);
+            /** UpdateTripRequest current */
+            current?: (rental.v1.ILocation|null);
 
             /** UpdateTripRequest endTrip */
             endTrip?: (boolean|null);
@@ -513,8 +513,8 @@ export namespace rental {
             /** UpdateTripRequest id. */
             public id: string;
 
-            /** UpdateTripRequest currentt. */
-            public currentt?: (rental.v1.ILocation|null);
+            /** UpdateTripRequest current. */
+            public current?: (rental.v1.ILocation|null);
 
             /** UpdateTripRequest endTrip. */
             public endTrip: boolean;

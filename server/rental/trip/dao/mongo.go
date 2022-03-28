@@ -102,3 +102,32 @@ func (m *Mongo) GetTrips(c context.Context, accountId id.AccountId, status renta
 
 	return trips, nil
 }
+
+func (m *Mongo) UpdateTrip(c context.Context, tripId id.TripId, accountId id.AccountId, updatedAt int64, trip *rentalpb.Trip) error {
+	objId, err := objid.FromId(tripId)
+	if err != nil {
+		return fmt.Errorf("invalid id: %v", err)
+	}
+
+	newUpdatedAt := mgutil.UpdatedAt()
+	res, err := m.col.UpdateOne(c, bson.M{
+		mgutil.IdFieldName:        objId,
+		accountIdField:            accountId.String(),
+		mgutil.UpdatedAtFieldName: updatedAt,
+	}, bson.M{
+		"$set": bson.M{
+			tripField:                 trip,
+			mgutil.UpdatedAtFieldName: newUpdatedAt,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+
+	return nil
+}

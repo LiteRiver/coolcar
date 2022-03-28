@@ -217,7 +217,7 @@ func TestGetTrips(t *testing.T) {
 		{
 			name:       "get_in_progress",
 			accountId:  "account_id_for_get_trips",
-			status: rentalpb.TripStatus_IN_PROGRESS,
+			status:     rentalpb.TripStatus_IN_PROGRESS,
 			wantCount:  1,
 			wantOnlyId: "61f2b7ef729f5d8b3bc69be7",
 		},
@@ -240,6 +240,99 @@ func TestGetTrips(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestUpdateTrip(t *testing.T) {
+	ctx := context.Background()
+	mc, err := mongotesting.NewClient(ctx)
+	if err != nil {
+		t.Fatalf("cannot connect to database: %v", err)
+	}
+
+	mgo := Use(mc.Database("coolcar"))
+	tripId := id.TripId("61f2b7ef729f5d9b3bc69be7")
+	accountId := id.AccountId("account_id_for_update")
+
+	var now int64 = 10000
+	mgutil.NewObjIdWithValue(tripId)
+	mgutil.UpdatedAt = func() int64 {
+		return now
+	}
+
+	row, err := mgo.CreateTrip(ctx, &rentalpb.Trip{
+		AccountId: accountId.String(),
+		Status:    rentalpb.TripStatus_IN_PROGRESS,
+		Start: &rentalpb.LocationStatus{
+			PointName: "start point",
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("cannot create trip: %v", err)
+	}
+
+	if row.UpdatedAt != now {
+		t.Fatalf("wrong updatedat; want: 10000, got: %d", row.UpdatedAt)
+	}
+
+	update := &rentalpb.Trip{
+		AccountId: accountId.String(),
+		Status:    rentalpb.TripStatus_IN_PROGRESS,
+		Start: &rentalpb.LocationStatus{
+			PointName: "start point updated",
+		},
+	}
+
+	cases := []struct {
+		name          string
+		now           int64
+		withUdpatedAt int64
+		wantErr       bool
+	}{
+		{
+			name:          "normal_update",
+			now:           20000,
+			withUdpatedAt: 10000,
+			wantErr:       false,
+		},
+		{
+			name:          "update_with_stale_timestamps",
+			now:           30000,
+			withUdpatedAt: 10000,
+			wantErr:       true,
+		},
+		{
+			name:          "update_with_refetch",
+			now:           40000,
+			withUdpatedAt: 20000,
+			wantErr:       false,
+		},
+	}
+
+	for _, cc := range cases {
+		now = cc.now
+		err := mgo.UpdateTrip(ctx, tripId, accountId, cc.withUdpatedAt, update)
+		if cc.wantErr {
+			if err == nil {
+				t.Errorf("%s: want error, got none", cc.name)
+			} else {
+				continue
+			}
+		} else {
+			if err != nil {
+				t.Errorf("%s: cannot update: %v", cc.name, err)
+			}
+		}
+
+		updatedTrip, err := mgo.GetTrip(ctx, tripId, accountId)
+		if err != nil {
+			t.Errorf("%s: cannot get updated trip: %v", cc.name, err)
+		}
+
+		if cc.now != updatedTrip.UpdatedAt {
+			t.Errorf("%s: incorrect updatedat: want: %d, got: %d", cc.name, cc.now, updatedTrip.UpdatedAt)
+		}
 	}
 }
 

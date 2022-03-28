@@ -10,10 +10,7 @@ import (
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-var mongoURI string
 
 func TestGetAccountId(t *testing.T) {
 	ctx := context.Background()

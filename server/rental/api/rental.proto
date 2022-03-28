@@ -61,7 +61,7 @@ message GetTripsResponse {
 
 message UpdateTripRequest {
   string id = 1;
-  Location currentt = 2;
+  Location current = 2;
   bool end_trip = 3;
 }
 

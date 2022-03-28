@@ -1095,7 +1095,7 @@ export const rental = $root.rental = (() => {
              * @memberof rental.v1
              * @interface IUpdateTripRequest
              * @property {string|null} [id] UpdateTripRequest id
-             * @property {rental.v1.ILocation|null} [currentt] UpdateTripRequest currentt
+             * @property {rental.v1.ILocation|null} [current] UpdateTripRequest current
              * @property {boolean|null} [endTrip] UpdateTripRequest endTrip
              */
 
@@ -1123,12 +1123,12 @@ export const rental = $root.rental = (() => {
             UpdateTripRequest.prototype.id = "";
 
             /**
-             * UpdateTripRequest currentt.
-             * @member {rental.v1.ILocation|null|undefined} currentt
+             * UpdateTripRequest current.
+             * @member {rental.v1.ILocation|null|undefined} current
              * @memberof rental.v1.UpdateTripRequest
              * @instance
              */
-            UpdateTripRequest.prototype.currentt = null;
+            UpdateTripRequest.prototype.current = null;
 
             /**
              * UpdateTripRequest endTrip.
@@ -1152,10 +1152,10 @@ export const rental = $root.rental = (() => {
                 let message = new $root.rental.v1.UpdateTripRequest();
                 if (object.id != null)
                     message.id = String(object.id);
-                if (object.currentt != null) {
-                    if (typeof object.currentt !== "object")
-                        throw TypeError(".rental.v1.UpdateTripRequest.currentt: object expected");
-                    message.currentt = $root.rental.v1.Location.fromObject(object.currentt);
+                if (object.current != null) {
+                    if (typeof object.current !== "object")
+                        throw TypeError(".rental.v1.UpdateTripRequest.current: object expected");
+                    message.current = $root.rental.v1.Location.fromObject(object.current);
                 }
                 if (object.endTrip != null)
                     message.endTrip = Boolean(object.endTrip);
@@ -1177,13 +1177,13 @@ export const rental = $root.rental = (() => {
                 let object = {};
                 if (options.defaults) {
                     object.id = "";
-                    object.currentt = null;
+                    object.current = null;
                     object.endTrip = false;
                 }
                 if (message.id != null && message.hasOwnProperty("id"))
                     object.id = message.id;
-                if (message.currentt != null && message.hasOwnProperty("currentt"))
-                    object.currentt = $root.rental.v1.Location.toObject(message.currentt, options);
+                if (message.current != null && message.hasOwnProperty("current"))
+                    object.current = $root.rental.v1.Location.toObject(message.current, options);
                 if (message.endTrip != null && message.hasOwnProperty("endTrip"))
                     object.endTrip = message.endTrip;
                 return object;
