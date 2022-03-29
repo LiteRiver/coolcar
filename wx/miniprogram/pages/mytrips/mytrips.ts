@@ -1,11 +1,14 @@
 import { IAppOption } from '../../app-option'
+import { rental } from '../../services/proto-gen/rental/rental-pb'
 import { TripService } from '../../services/trip'
 import { consts } from '../../utils/consts'
+import { formats } from '../../utils/formats'
 import { routing } from '../../utils/routing'
 import { wxapi } from '../../utils/wxapi'
 
 interface Trip {
   id: string
+  shortId: string
   start: string
   end: string
   duration: string
@@ -36,12 +39,18 @@ interface MainItemState {
   }
 }
 
+const tripStatusMap = new Map([
+  [rental.v1.TripStatus.IN_PROGRESS, '进行中'],
+  [rental.v1.TripStatus.FINISHED, '已完成'],
+])
+
 const app = getApp<IAppOption>()
 
 Page({
   scrollStates: {
     mainItems: [] as MainItemState[],
   },
+  layoutResolver: undefined as ((value: unknown) => void) | undefined,
   data: {
     avatarUrl: '',
     imageUrls: [
@@ -58,9 +67,14 @@ Page({
     mainScroll: '',
     navScroll: '',
   },
-  async onLoad() {
-    const trips = await TripService.list()
-    this.populateTrips()
+  onLoad() {
+    const layoutReady = new Promise((resolve) => {
+      this.layoutResolver = resolve
+    })
+    Promise.all([TripService.list(), layoutReady]).then(([res, _]) => {
+      this.populateTrips(res.trips)
+    })
+
     app.globalData.userInfo.then((userInfo) => {
       this.setData({
         avatarUrl: userInfo.avatarUrl,
@@ -72,10 +86,17 @@ Page({
       .select('#heading')
       .boundingClientRect((rect) => {
         const tripsHeight = wx.getSystemInfoSync().windowHeight - rect.height
-        this.setData({
-          tripsHeight,
-          navCount: tripsHeight / 50,
-        })
+        this.setData(
+          {
+            tripsHeight,
+            navCount: tripsHeight / 50,
+          },
+          () => {
+            if (this.layoutResolver) {
+              this.layoutResolver(undefined)
+            }
+          }
+        )
       })
       .exec()
   },
@@ -101,37 +122,54 @@ Page({
       })
     }
   },
-  populateTrips() {
+  populateTrips(trips: rental.v1.ITripEntity[]) {
     const mainItems: MainItem[] = []
     const navItems: NavItem[] = []
     let activeNavItem = ''
     let prevNav = ''
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < trips.length; i++) {
+      const trip = trips[i]
       const mainId = `main-${i}`
       const navId = `nav-${i}`
-      const tripId = (10001 + i).toString()
+      const tripId = trip.id!
+      const shortId = '****' + tripId.substr(tripId.length - 6)
       if (!prevNav) {
         prevNav = navId
       }
+
+      const tripData: Trip = {
+        id: tripId,
+        shortId,
+        start: trip.trip?.start?.pointName || '未知',
+        status: tripStatusMap.get(trip.trip?.status!) || '未知',
+        end: '',
+        distance: '',
+        duration: '',
+        fee: '',
+      }
+
+      const end = trip.trip?.end
+      if (end) {
+        tripData.end = end.pointName || '未知'
+        tripData.distance = end.kmDriven?.toFixed(1) + '公里'
+        tripData.fee = formats.formatFee(end.feeCent || 0)
+        const dur = formats.formatDuration(
+          (end.timestampSec || 0) - (trip.trip?.start?.timestampSec || 0)
+        )
+        tripData.duration = `${dur.hh}时${dur.mm}分`
+      }
+
       mainItems.push({
         mainId,
         navId,
         navScrollId: prevNav,
-        data: {
-          id: tripId,
-          start: '东方明珠',
-          end: '迪斯尼',
-          distance: '27.0公里',
-          duration: '0时44分',
-          fee: '128.0元',
-          status: '已完成',
-        },
+        data: tripData,
       })
 
       navItems.push({
         mainId,
         navId,
-        label: tripId,
+        label: shortId,
       })
 
       if (i === 0) {
@@ -139,6 +177,14 @@ Page({
       }
 
       prevNav = navId
+    }
+
+    for (let i = 0; i < this.data.navCount - 1; i++) {
+      navItems.push({
+        mainId: '',
+        navId: '',
+        label: '',
+      })
     }
     this.setData(
       {

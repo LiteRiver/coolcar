@@ -46,7 +46,7 @@
       class="cu-item {{activeNavItem === item.navId ? 'text-green cur' : ''}}"
       bind:tap="onNavItemClicked"
     >
-      <view class>{{item.label}}</view>
+      <view>{{item.label}}</view>
     </swiper-item>
   </swiper>
   <scroll-view
@@ -69,7 +69,7 @@
       <view class="cu-bar solid-bottom padding-right">
         <view class="action">
           <text class="cuIcon-title text-green"></text>
-          {{item.data.id}}
+          {{item.data.shortId}}
         </view>
         <text>{{item.data.status}}</text>
       </view>

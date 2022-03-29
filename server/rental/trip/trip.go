@@ -150,6 +150,10 @@ func (s *Service) UpdateTrip(ctx context.Context, req *rentalpb.UpdateTripReques
 		return nil, status.Error(codes.NotFound, "")
 	}
 
+	if row.Trip.Status == rentalpb.TripStatus_FINISHED {
+		return nil, status.Error(codes.FailedPrecondition, "cannot update after finished trip")
+	}
+
 	if row.Trip.Current == nil {
 		s.Logger.Error("trip without Current set", zap.String("id", tripId.String()))
 		return nil, status.Error(codes.Internal, "")

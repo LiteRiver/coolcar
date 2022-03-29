@@ -154,6 +154,7 @@ func TestTripLifecycle(t *testing.T) {
 		now  int64
 		op   func() (*rentalpb.Trip, error)
 		want string
+		wantErr bool
 	}{
 		{
 			name: "create_trip",
@@ -208,6 +209,16 @@ func TestTripLifecycle(t *testing.T) {
 			},
 			want: `{"account_id":"account_for_lifecycle","car_id":"car1","start":{"location":{"latitude":32.123,"longitude":114.2525},"point_name":"天安门","timestamp_sec":10000},"current":{"location":{"latitude":28.232325,"longitude":123.2343221},"fee_cent":11825,"km_driven":100,"point_name":"天安门","timestamp_sec":30000},"end":{"location":{"latitude":28.232325,"longitude":123.2343221},"fee_cent":11825,"km_driven":100,"point_name":"天安门","timestamp_sec":30000},"status":2}`,
 		},
+		{
+			name: "udpate_after_finished",
+			now: 50000,
+			op: func() (*rentalpb.Trip, error) {
+				return s.UpdateTrip(ctx, &rentalpb.UpdateTripRequest{
+					Id: tripId.String(),
+				})
+			},
+			wantErr: true,
+		},
 	}
 
 	rand.Seed(1345)
@@ -217,6 +228,15 @@ func TestTripLifecycle(t *testing.T) {
 		}
 
 		trip, err := cc.op()
+
+		if cc.wantErr {
+			if err == nil {
+				t.Errorf("%s: want error; got none", cc.name)
+			} else {
+				continue
+			}
+		}
+
 		if err != nil {
 			t.Errorf("%s: operation failed: %v", cc.name, err)
 			continue

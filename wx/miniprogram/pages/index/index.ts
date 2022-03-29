@@ -1,4 +1,6 @@
 import { IAppOption } from '../../app-option'
+import { rental } from '../../services/proto-gen/rental/rental-pb'
+import { TripService } from '../../services/trip'
 import { routing } from '../../utils/routing'
 
 Page({
@@ -96,7 +98,17 @@ Page({
 
     moveCar()
   },
-  onScanClicked() {
+  async onScanClicked() {
+    const res = await TripService.list(rental.v1.TripStatus.IN_PROGRESS)
+    if (res.trips[0]) {
+      await this.selectComponent('#tripModal').showModal()
+      wx.navigateTo({
+        url: routing.driving({
+          tripId: res.trips[0].id!,
+        }),
+      })
+      return
+    }
     wx.scanCode({
       success: async () => {
         await this.selectComponent('#licModal').showModal()

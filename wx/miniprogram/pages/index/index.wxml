@@ -19,3 +19,4 @@
   <cover-view class="btn-container bg-grey round" bind:tap="onScanClicked">扫码租车</cover-view>
 </map>
 <modal id="licModal" bind:ok="onModalOk"  title="身份认证" contents="需要身份认证才能租车"></modal>
+<modal id="tripModal" bind:ok="onModalOk"  title="行程中" contents="当前有正在进行的行程， 讲跳转到行程页面"></modal>

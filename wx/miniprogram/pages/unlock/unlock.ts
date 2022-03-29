@@ -53,24 +53,32 @@ Page({
           return
         }
 
-        const trip = await TripService.create({
-          start: loc,
-          carId: this.carId,
-        })
-
-        const tripId = trip.id
         wx.showLoading({
           title: '开锁中',
           mask: true,
         })
-        setTimeout(() => {
+
+        try {
+          const trip = await TripService.create({
+            start: loc,
+            carId: this.carId,
+          })
+          const tripId = trip.id
           wx.redirectTo({
             url: routing.driving({ tripId }),
             complete: () => {
               wx.hideLoading()
             },
           })
-        }, 2000)
+        } catch (err) {
+          wx.hideLoading()
+          wx.showToast({
+            title: '创建行程失败',
+            icon: 'none',
+          })
+
+          return
+        }
       },
       fail: () => {
         wx.showToast({
