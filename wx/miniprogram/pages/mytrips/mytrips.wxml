@@ -13,6 +13,18 @@
       </swiper-item>
     </block>
   </swiper>
+  <view class="avatar-container padding-top padding-bottom">
+    <view>我的行程</view>
+    <view class="avatar">
+      <view class="margin-right">
+        <button wx:if="{{!avatarUrl}}" class="cu-avatar round lg bg-grey" bind:tap="onGetUserProfile">
+          <text class="cuIcon-people"></text>
+        </button>
+        <image wx:else class="cu-avatar round lg bg-grey" src="{{avatarUrl}}" />
+      </view>
+      <view bind:tap="onRegisterClicked" class="text-blue">驾驶资格未认证</view>
+    </view>
+  </view>
 </view>
 
 <view class="trips-container">

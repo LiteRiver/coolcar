@@ -1,13 +1,22 @@
+import { routing } from '../../utils/routing'
+
 Page({
+  redirectURL: '',
   data: {
-    licenseNo: "",
-    name: "",
+    licenseNo: '',
+    name: '',
     genderIndex: 0,
-    genders: ["未知", "男", "女", "其他"],
-    driverLicenseUrl: "",
+    genders: ['未知', '男', '女', '其他'],
+    driverLicenseUrl: '',
     // driverLicenseUrl: "/images/sedan.png",
-    dateOfBirth: "1990-01-01",
-    state: "UNSUBMITTED" as "UNSUBMITTED" | "PENDING" | "VERIFIED",
+    dateOfBirth: '1990-01-01',
+    state: 'UNSUBMITTED' as 'UNSUBMITTED' | 'PENDING' | 'VERIFIED',
+  },
+  onLoad(opts: Record<'redirect', string>) {
+    const registrationOpts: routing.RegistrationOpts = opts
+    if (registrationOpts.redirect) {
+      this.redirectURL = decodeURIComponent(registrationOpts.redirect)
+    }
   },
   onUploadLicense() {
     wx.chooseImage({
@@ -19,10 +28,10 @@ Page({
           // TODO: upload license image
           setTimeout(() => {
             this.setData({
-              licenseNo: "123412341234",
-              name: "CLIVE ZHANG",
+              licenseNo: '123412341234',
+              name: 'CLIVE ZHANG',
               genderIndex: 1,
-              dateOfBirth: "1983-06-01",
+              dateOfBirth: '1983-06-01',
             })
           }, 1000)
         }
@@ -42,7 +51,7 @@ Page({
   onSubmit() {
     // TODO: submit the form to server
     this.setData({
-      state: "PENDING",
+      state: 'PENDING',
     })
 
     setTimeout(() => {
@@ -51,16 +60,18 @@ Page({
   },
   onResubmit() {
     this.setData({
-      state: "UNSUBMITTED",
-      driverLicenseUrl: "",
+      state: 'UNSUBMITTED',
+      driverLicenseUrl: '',
     })
   },
   onVerified() {
     this.setData({
-      state: "VERIFIED",
+      state: 'VERIFIED',
     })
-    wx.redirectTo({
-      url: "/pages/unlock/unlock",
-    })
+    if (this.redirectURL) {
+      wx.redirectTo({
+        url: this.redirectURL,
+      })
+    }
   },
 })

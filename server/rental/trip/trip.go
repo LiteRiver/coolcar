@@ -6,16 +6,21 @@ import (
 	"coolcar/rental/trip/dao"
 	"coolcar/shared/auth"
 	"coolcar/shared/id"
+	"math/rand"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
+const centsPerSec = 0.7
+
 type Service struct {
 	ProfileManager
 	CarManager
 	PointManager
+	DistanceCalc
 	Logger *zap.Logger
 	Mongo  *dao.Mongo
 	rentalpb.UnimplementedTripServiceServer
@@ -35,14 +40,59 @@ type PointManager interface {
 	Resolve(context.Context, *rentalpb.Location) (string, error)
 }
 
-// TODO: 验证驾驶者身份
-// TODO: 检查车辆状态
-// TODO: 创建行程：写入数据库， 开始计费
-// TODO: 车辆开锁
+type DistanceCalc interface {
+	DistanceKm(context.Context, *rentalpb.Location, *rentalpb.Location) (float64, error)
+}
+
+var nowFunc = func() int64 {
+	return time.Now().Unix()
+}
+
+func (s *Service) GetTrip(ctx context.Context, req *rentalpb.GetTripRequest) (*rentalpb.Trip, error) {
+	accountId, err := auth.AccountIdFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	row, err := s.Mongo.GetTrip(ctx, id.TripId(req.Id), accountId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "")
+	}
+
+	return row.Trip, nil
+}
+
+func (s *Service) GetTrips(ctx context.Context, req *rentalpb.GetTripsRequest) (*rentalpb.GetTripsResponse, error) {
+	accountId, err := auth.AccountIdFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.Mongo.GetTrips(ctx, accountId, req.Status)
+	if err != nil {
+		s.Logger.Error("cannot get trips: %v", zap.Error(err))
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	res := &rentalpb.GetTripsResponse{}
+	for _, row := range rows {
+		res.Trips = append(res.Trips, &rentalpb.TripEntity{
+			Id:   row.Id.Hex(),
+			Trip: row.Trip,
+		})
+	}
+
+	return res, nil
+}
+
 func (s *Service) CreateTrip(ctx context.Context, req *rentalpb.CreateTripRequest) (*rentalpb.TripEntity, error) {
 	accountId, err := auth.AccountIdFromContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if req.CarId == "" || req.Start == nil {
+		return nil, status.Error(codes.InvalidArgument, "")
 	}
 
 	identityId, err := s.ProfileManager.Verify(ctx, accountId)
@@ -56,15 +106,11 @@ func (s *Service) CreateTrip(ctx context.Context, req *rentalpb.CreateTripReques
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 
-	pointName, err := s.PointManager.Resolve(ctx, req.Start)
-	if err != nil {
-		s.Logger.Warn("cannot resolve point name", zap.Stringer("location", req.Start), zap.Error(err))
-	}
+	ls := s.calcCurrentStatus(ctx, &rentalpb.LocationStatus{
+		Location:     req.Start,
+		TimestampSec: nowFunc(),
+	}, req.Start)
 
-	ls := &rentalpb.LocationStatus{
-		Location:  req.Start,
-		PointName: pointName,
-	}
 	trip, err := s.Mongo.CreateTrip(ctx, &rentalpb.Trip{
 		AccountId:  accountId.String(),
 		CarId:      carId.String(),
@@ -95,18 +141,26 @@ func (s *Service) CreateTrip(ctx context.Context, req *rentalpb.CreateTripReques
 func (s *Service) UpdateTrip(ctx context.Context, req *rentalpb.UpdateTripRequest) (*rentalpb.Trip, error) {
 	accountId, err := auth.AccountIdFromContext(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "")
+		return nil, err
 	}
+
 	tripId := id.TripId(req.Id)
 	row, err := s.Mongo.GetTrip(ctx, tripId, accountId)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "")
 	}
 
-	if req.Current != nil {
-		row.Trip.Current.Location = req.Current
-		row.Trip.Current = s.calcCurrentStatus(row.Trip, req.Current)
+	if row.Trip.Current == nil {
+		s.Logger.Error("trip without Current set", zap.String("id", tripId.String()))
+		return nil, status.Error(codes.Internal, "")
 	}
+
+	cur := row.Trip.Current.Location
+	if req.Current != nil {
+		cur = req.Current
+	}
+
+	row.Trip.Current = s.calcCurrentStatus(ctx, row.Trip.Current, cur)
 
 	if req.EndTrip {
 		row.Trip.End = row.Trip.Current
@@ -117,6 +171,25 @@ func (s *Service) UpdateTrip(ctx context.Context, req *rentalpb.UpdateTripReques
 	return row.Trip, nil
 }
 
-func (s *Service) calcCurrentStatus(trip *rentalpb.Trip, current *rentalpb.Location) *rentalpb.LocationStatus {
-	return nil
+func (s *Service) calcCurrentStatus(c context.Context, last *rentalpb.LocationStatus, current *rentalpb.Location) *rentalpb.LocationStatus {
+	now := nowFunc()
+	elapsedSec := float64(now - last.TimestampSec)
+
+	dis, err := s.DistanceCalc.DistanceKm(c, last.Location, current)
+	if err != nil {
+		s.Logger.Warn("cannot calculate distance", zap.Error(err))
+	}
+
+	pointName, err := s.PointManager.Resolve(c, current)
+	if err != nil {
+		s.Logger.Warn("cannot resolve point name", zap.Stringer("location", current), zap.Error(err))
+	}
+
+	return &rentalpb.LocationStatus{
+		Location:     current,
+		FeeCent:      last.FeeCent + int32(centsPerSec*elapsedSec*2*rand.Float64()),
+		KmDriven:     last.KmDriven + dis,
+		TimestampSec: now,
+		PointName:    pointName,
+	}
 }

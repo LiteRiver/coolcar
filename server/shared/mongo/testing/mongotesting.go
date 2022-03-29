@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	image         = "mongo:5.0.5"
+	image         = "mongo:latest"
 	containerPort = "27017/tcp"
 )
 

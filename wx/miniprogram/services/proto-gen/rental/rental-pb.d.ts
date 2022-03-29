@@ -66,6 +66,9 @@ export namespace rental {
 
             /** LocationStatus pointName */
             pointName?: (string|null);
+
+            /** LocationStatus timestampSec */
+            timestampSec?: (number|null);
         }
 
         /** Represents a LocationStatus. */
@@ -88,6 +91,9 @@ export namespace rental {
 
             /** LocationStatus pointName. */
             public pointName: string;
+
+            /** LocationStatus timestampSec. */
+            public timestampSec: number;
 
             /**
              * Creates a LocationStatus message from a plain object. Also converts values to their respective internal types.
@@ -289,47 +295,6 @@ export namespace rental {
             public toJSON(): { [k: string]: any };
         }
 
-        /** Properties of a CreateTripResponse. */
-        interface ICreateTripResponse {
-
-            /** CreateTripResponse trip */
-            trip?: (rental.v1.ITripEntity|null);
-        }
-
-        /** Represents a CreateTripResponse. */
-        class CreateTripResponse implements ICreateTripResponse {
-
-            /**
-             * Constructs a new CreateTripResponse.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: rental.v1.ICreateTripResponse);
-
-            /** CreateTripResponse trip. */
-            public trip?: (rental.v1.ITripEntity|null);
-
-            /**
-             * Creates a CreateTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns CreateTripResponse
-             */
-            public static fromObject(object: { [k: string]: any }): rental.v1.CreateTripResponse;
-
-            /**
-             * Creates a plain object from a CreateTripResponse message. Also converts values to other types if specified.
-             * @param message CreateTripResponse
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: rental.v1.CreateTripResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this CreateTripResponse to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
-        }
-
         /** Properties of a GetTripRequest. */
         interface IGetTripRequest {
 
@@ -366,47 +331,6 @@ export namespace rental {
 
             /**
              * Converts this GetTripRequest to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
-        }
-
-        /** Properties of a GetTripResponse. */
-        interface IGetTripResponse {
-
-            /** GetTripResponse trip */
-            trip?: (rental.v1.ITrip|null);
-        }
-
-        /** Represents a GetTripResponse. */
-        class GetTripResponse implements IGetTripResponse {
-
-            /**
-             * Constructs a new GetTripResponse.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: rental.v1.IGetTripResponse);
-
-            /** GetTripResponse trip. */
-            public trip?: (rental.v1.ITrip|null);
-
-            /**
-             * Creates a GetTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns GetTripResponse
-             */
-            public static fromObject(object: { [k: string]: any }): rental.v1.GetTripResponse;
-
-            /**
-             * Creates a plain object from a GetTripResponse message. Also converts values to other types if specified.
-             * @param message GetTripResponse
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: rental.v1.GetTripResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this GetTripResponse to JSON.
              * @returns JSON object
              */
             public toJSON(): { [k: string]: any };
@@ -547,41 +471,6 @@ export namespace rental {
             public toJSON(): { [k: string]: any };
         }
 
-        /** Properties of an UpdateTripResponse. */
-        interface IUpdateTripResponse {
-        }
-
-        /** Represents an UpdateTripResponse. */
-        class UpdateTripResponse implements IUpdateTripResponse {
-
-            /**
-             * Constructs a new UpdateTripResponse.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: rental.v1.IUpdateTripResponse);
-
-            /**
-             * Creates an UpdateTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns UpdateTripResponse
-             */
-            public static fromObject(object: { [k: string]: any }): rental.v1.UpdateTripResponse;
-
-            /**
-             * Creates a plain object from an UpdateTripResponse message. Also converts values to other types if specified.
-             * @param message UpdateTripResponse
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: rental.v1.UpdateTripResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this UpdateTripResponse to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
-        }
-
         /** Represents a TripService */
         class TripService extends $protobuf.rpc.Service {
 
@@ -596,7 +485,7 @@ export namespace rental {
             /**
              * Calls CreateTrip.
              * @param request CreateTripRequest message or plain object
-             * @param callback Node-style callback called with the error, if any, and CreateTripResponse
+             * @param callback Node-style callback called with the error, if any, and TripEntity
              */
             public createTrip(request: rental.v1.ICreateTripRequest, callback: rental.v1.TripService.CreateTripCallback): void;
 
@@ -605,12 +494,12 @@ export namespace rental {
              * @param request CreateTripRequest message or plain object
              * @returns Promise
              */
-            public createTrip(request: rental.v1.ICreateTripRequest): Promise<rental.v1.CreateTripResponse>;
+            public createTrip(request: rental.v1.ICreateTripRequest): Promise<rental.v1.TripEntity>;
 
             /**
              * Calls GetTrip.
              * @param request GetTripRequest message or plain object
-             * @param callback Node-style callback called with the error, if any, and GetTripResponse
+             * @param callback Node-style callback called with the error, if any, and Trip
              */
             public getTrip(request: rental.v1.IGetTripRequest, callback: rental.v1.TripService.GetTripCallback): void;
 
@@ -619,7 +508,7 @@ export namespace rental {
              * @param request GetTripRequest message or plain object
              * @returns Promise
              */
-            public getTrip(request: rental.v1.IGetTripRequest): Promise<rental.v1.GetTripResponse>;
+            public getTrip(request: rental.v1.IGetTripRequest): Promise<rental.v1.Trip>;
 
             /**
              * Calls GetTrips.
@@ -655,16 +544,16 @@ export namespace rental {
             /**
              * Callback as used by {@link rental.v1.TripService#createTrip}.
              * @param error Error, if any
-             * @param [response] CreateTripResponse
+             * @param [response] TripEntity
              */
-            type CreateTripCallback = (error: (Error|null), response?: rental.v1.CreateTripResponse) => void;
+            type CreateTripCallback = (error: (Error|null), response?: rental.v1.TripEntity) => void;
 
             /**
              * Callback as used by {@link rental.v1.TripService#getTrip}.
              * @param error Error, if any
-             * @param [response] GetTripResponse
+             * @param [response] Trip
              */
-            type GetTripCallback = (error: (Error|null), response?: rental.v1.GetTripResponse) => void;
+            type GetTripCallback = (error: (Error|null), response?: rental.v1.Trip) => void;
 
             /**
              * Callback as used by {@link rental.v1.TripService#getTrips}.

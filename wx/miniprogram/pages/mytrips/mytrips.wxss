@@ -13,6 +13,19 @@ swiper {
   height: 100%;
 }
 
+.avatar-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.avatar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .trips-container {
   display: flex;
   flex-direction: row;
@@ -20,6 +33,8 @@ swiper {
 
 .trips-container swiper {
   width: 200rpx;
+  border-top-right-radius: 20rpx;
+  border-bottom-right-radius: 20rpx;
 }
 
 .nav .cu-item {
@@ -47,7 +62,8 @@ swiper {
 
 .trip {
   border-radius: 20rpx;
-  margin: 20rpx;
+  margin: 0 20rpx 20rpx 20rpx;
+  overflow: hidden;
 }
 
 .trip-details {

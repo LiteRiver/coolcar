@@ -24,7 +24,7 @@ function genProto {
   printf "import * as \$protobuf from \"protobufjs\";\n" >$PBJS_OUT/${DOMAIN}-pb.js
   $PBJS_BIN/pbjs -t static -w es6 $PROTO_PATH/${DOMAIN}.proto \
     --no-create --no-encode --no-decode --no-verify \
-    --no-delimited >>$PBJS_OUT/${DOMAIN}-pb.js
+    --no-delimited --force-number >>$PBJS_OUT/${DOMAIN}-pb.js
   $PBJS_BIN/pbts -o $PBJS_OUT/${DOMAIN}-pb.d.ts $PBJS_OUT/${DOMAIN}-pb.js
 }
 

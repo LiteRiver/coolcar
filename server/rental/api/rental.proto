@@ -12,6 +12,7 @@ message LocationStatus {
   int32 fee_cent = 2;
   double km_driven = 3;
   string point_name = 4;
+  int64 timestamp_sec = 5;
 }
 
 enum TripStatus {
@@ -40,16 +41,8 @@ message CreateTripRequest {
   string car_id = 2;
 }
 
-message CreateTripResponse {
-  TripEntity trip = 1;
-}
-
 message GetTripRequest {
   string id = 1;
-}
-
-message GetTripResponse {
-  Trip trip = 1;
 }
 
 message GetTripsRequest {
@@ -66,13 +59,9 @@ message UpdateTripRequest {
   bool end_trip = 3;
 }
 
-message UpdateTripResponse {
-
-}
-
 service TripService {
-  rpc CreateTrip(CreateTripRequest) returns (CreateTripResponse);
-  rpc GetTrip(GetTripRequest) returns (GetTripResponse);
+  rpc CreateTrip(CreateTripRequest) returns (TripEntity);
+  rpc GetTrip(GetTripRequest) returns (Trip);
   rpc GetTrips(GetTripsRequest) returns (GetTripsResponse);
   rpc UpdateTrip(UpdateTripRequest) returns (Trip);
 }

@@ -1,3 +1,9 @@
+import { IAppOption } from '../../app-option'
+import { TripService } from '../../services/trip'
+import { consts } from '../../utils/consts'
+import { routing } from '../../utils/routing'
+import { wxapi } from '../../utils/wxapi'
+
 interface Trip {
   id: string
   start: string
@@ -30,11 +36,14 @@ interface MainItemState {
   }
 }
 
+const app = getApp<IAppOption>()
+
 Page({
   scrollStates: {
     mainItems: [] as MainItemState[],
   },
   data: {
+    avatarUrl: '',
     imageUrls: [
       'https://img2.mukewang.com/622211a20001a95817920764.jpg',
       'https://img1.mukewang.com/62256a5d0001eb3e17920764.jpg',
@@ -47,10 +56,16 @@ Page({
     mainItems: [] as MainItem[],
     navItems: [] as NavItem[],
     mainScroll: '',
-    navScroll: ''
+    navScroll: '',
   },
-  onLoad() {
+  async onLoad() {
+    const trips = await TripService.list()
     this.populateTrips()
+    app.globalData.userInfo.then((userInfo) => {
+      this.setData({
+        avatarUrl: userInfo.avatarUrl,
+      })
+    })
   },
   onReady() {
     wx.createSelectorQuery()
@@ -63,6 +78,17 @@ Page({
         })
       })
       .exec()
+  },
+  onGetUserProfile() {
+    wxapi.getUserProfile().then((res) => {
+      app.resolveUserInfo(res.userInfo)
+      wx.setStorageSync(consts.ShareLocationKey, true)
+    })
+  },
+  onRegisterClicked() {
+    wx.navigateTo({
+      url: routing.registration(),
+    })
   },
   onNavItemClicked(e: any) {
     const mainId: string = e.currentTarget?.dataset?.mainId

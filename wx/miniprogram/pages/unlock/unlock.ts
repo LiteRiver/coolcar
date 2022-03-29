@@ -1,33 +1,38 @@
 import { IAppOption } from '../../app-option'
-import { getUserProfile } from '../../utils/wxapi'
+import { TripService } from '../../services/trip'
+import { consts } from '../../utils/consts'
+import { routing } from '../../utils/routing'
+import { wxapi } from '../../utils/wxapi'
 
 const app = getApp<IAppOption>()
-const ShareLocationKey = 'share-location'
 
 Page({
+  carId: '',
   data: {
     shareLocation: false,
     avatarUrl: '',
   },
   onGetUserProfile() {
-    getUserProfile().then((res) => {
+    wxapi.getUserProfile().then((res) => {
       app.resolveUserInfo(res.userInfo)
       this.setData({
         shareLocation: true,
       })
-      wx.setStorageSync(ShareLocationKey, true)
+      wx.setStorageSync(consts.ShareLocationKey, true)
     })
   },
-  async onLoad() {
+  async onLoad(opts: Record<'carId', string>) {
+    const unlockOpts: routing.UnlockOpts = opts
+    this.carId = unlockOpts.carId
     const userInfo = await app.globalData.userInfo
     this.setData({
       avatarUrl: userInfo.avatarUrl,
-      shareLocation: wx.getStorageSync(ShareLocationKey) || false,
+      shareLocation: wx.getStorageSync(consts.ShareLocationKey) || false,
     })
   },
   onShareLocationChanged(e: any) {
     const shareLocation: boolean = e.detail.value
-    wx.setStorageSync(ShareLocationKey, shareLocation)
+    wx.setStorageSync(consts.ShareLocationKey, shareLocation)
     this.setData({
       shareLocation,
     })
@@ -35,7 +40,7 @@ Page({
   onUnlockClicked() {
     wx.getLocation({
       type: 'gcj02',
-      success: (loc) => {
+      success: async (loc) => {
         console.log('starting a trip', {
           location: {
             latitude: loc.latitude,
@@ -43,13 +48,24 @@ Page({
           },
           avatarUrl: this.data.shareLocation ? this.data.avatarUrl : '',
         })
+        if (!this.carId) {
+          console.error('no carId specified')
+          return
+        }
+
+        const trip = await TripService.create({
+          start: loc,
+          carId: this.carId,
+        })
+
+        const tripId = trip.id
         wx.showLoading({
           title: '开锁中',
           mask: true,
         })
         setTimeout(() => {
           wx.redirectTo({
-            url: '/pages/driving/driving',
+            url: routing.driving({ tripId }),
             complete: () => {
               wx.hideLoading()
             },

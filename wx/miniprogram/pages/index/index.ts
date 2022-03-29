@@ -1,4 +1,5 @@
 import { IAppOption } from '../../app-option'
+import { routing } from '../../utils/routing'
 
 Page({
   isPageShowing: false,
@@ -67,7 +68,7 @@ Page({
   },
   onMyTripsClicked() {
     wx.navigateTo({
-      url: '/pages/mytrips/mytrips',
+      url: routing.mytrips(),
     })
   },
   moveCars() {
@@ -99,8 +100,10 @@ Page({
     wx.scanCode({
       success: async () => {
         await this.selectComponent('#licModal').showModal()
+        const carId = 'car123'
+        const redirectURL = routing.unlock({ carId })
         wx.navigateTo({
-          url: '/pages/registration/registration',
+          url: routing.registration({ redirectURL }),
         })
       },
       fail: console.error,

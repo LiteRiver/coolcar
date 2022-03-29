@@ -1,3 +1,6 @@
+import { TripService } from '../../services/trip'
+import { routing } from '../../utils/routing'
+
 const centsPerSec = 0.7
 
 function formatDuration(sec: number) {
@@ -28,7 +31,12 @@ Page({
     elapsed: '00:00:00',
     fee: '0.00元',
   },
-  onLoad() {
+  onLoad(opts: Record<'tripId', string>) {
+    const drivingOpts: routing.DrivingOpts = opts
+    console.log(drivingOpts.tripId)
+    TripService.get(drivingOpts.tripId).then((res) => {
+      console.log(res)
+    })
     this.setupLocationUpdator()
     this.setupTimer()
   },
@@ -67,7 +75,7 @@ Page({
   },
   onEndClicked() {
     wx.redirectTo({
-      url: '/pages/mytrips/mytrips',
+      url: routing.mytrips(),
     })
   },
 })

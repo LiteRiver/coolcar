@@ -1,5 +1,4 @@
 import { IAppOption } from "./app-option"
-// import { getSetting, getUserInfo } from './utils/wxapi'
 
 let resolveUserInfo: (
   value: WechatMiniprogram.UserInfo | PromiseLike<WechatMiniprogram.UserInfo>

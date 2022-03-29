@@ -3,6 +3,7 @@
   "semi": false,
   "endOfLine": "lf",
   "singleQuote": true,
+  "printWidth": 90,
   "overrides": [
     {
       "files": "*.wxml",

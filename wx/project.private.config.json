@@ -21,8 +21,9 @@
         {
           "name": "",
           "pathName": "pages/unlock/unlock",
-          "query": "",
-          "scene": null
+          "query": "carId=demo_car",
+          "scene": null,
+          "launchMode": "default"
         },
         {
           "name": "",

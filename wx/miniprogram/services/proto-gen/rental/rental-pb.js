@@ -131,6 +131,7 @@ export const rental = $root.rental = (() => {
              * @property {number|null} [feeCent] LocationStatus feeCent
              * @property {number|null} [kmDriven] LocationStatus kmDriven
              * @property {string|null} [pointName] LocationStatus pointName
+             * @property {number|null} [timestampSec] LocationStatus timestampSec
              */
 
             /**
@@ -181,6 +182,14 @@ export const rental = $root.rental = (() => {
             LocationStatus.prototype.pointName = "";
 
             /**
+             * LocationStatus timestampSec.
+             * @member {number} timestampSec
+             * @memberof rental.v1.LocationStatus
+             * @instance
+             */
+            LocationStatus.prototype.timestampSec = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+            /**
              * Creates a LocationStatus message from a plain object. Also converts values to their respective internal types.
              * @function fromObject
              * @memberof rental.v1.LocationStatus
@@ -203,6 +212,15 @@ export const rental = $root.rental = (() => {
                     message.kmDriven = Number(object.kmDriven);
                 if (object.pointName != null)
                     message.pointName = String(object.pointName);
+                if (object.timestampSec != null)
+                    if ($util.Long)
+                        (message.timestampSec = $util.Long.fromValue(object.timestampSec)).unsigned = false;
+                    else if (typeof object.timestampSec === "string")
+                        message.timestampSec = parseInt(object.timestampSec, 10);
+                    else if (typeof object.timestampSec === "number")
+                        message.timestampSec = object.timestampSec;
+                    else if (typeof object.timestampSec === "object")
+                        message.timestampSec = new $util.LongBits(object.timestampSec.low >>> 0, object.timestampSec.high >>> 0).toNumber();
                 return message;
             };
 
@@ -224,6 +242,11 @@ export const rental = $root.rental = (() => {
                     object.feeCent = 0;
                     object.kmDriven = 0;
                     object.pointName = "";
+                    if ($util.Long) {
+                        let long = new $util.Long(0, 0, false);
+                        object.timestampSec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                    } else
+                        object.timestampSec = options.longs === String ? "0" : 0;
                 }
                 if (message.location != null && message.hasOwnProperty("location"))
                     object.location = $root.rental.v1.Location.toObject(message.location, options);
@@ -233,6 +256,11 @@ export const rental = $root.rental = (() => {
                     object.kmDriven = options.json && !isFinite(message.kmDriven) ? String(message.kmDriven) : message.kmDriven;
                 if (message.pointName != null && message.hasOwnProperty("pointName"))
                     object.pointName = message.pointName;
+                if (message.timestampSec != null && message.hasOwnProperty("timestampSec"))
+                    if (typeof message.timestampSec === "number")
+                        object.timestampSec = options.longs === String ? String(message.timestampSec) : message.timestampSec;
+                    else
+                        object.timestampSec = options.longs === String ? $util.Long.prototype.toString.call(message.timestampSec) : options.longs === Number ? new $util.LongBits(message.timestampSec.low >>> 0, message.timestampSec.high >>> 0).toNumber() : message.timestampSec;
                 return object;
             };
 
@@ -657,92 +685,6 @@ export const rental = $root.rental = (() => {
             return CreateTripRequest;
         })();
 
-        v1.CreateTripResponse = (function() {
-
-            /**
-             * Properties of a CreateTripResponse.
-             * @memberof rental.v1
-             * @interface ICreateTripResponse
-             * @property {rental.v1.ITripEntity|null} [trip] CreateTripResponse trip
-             */
-
-            /**
-             * Constructs a new CreateTripResponse.
-             * @memberof rental.v1
-             * @classdesc Represents a CreateTripResponse.
-             * @implements ICreateTripResponse
-             * @constructor
-             * @param {rental.v1.ICreateTripResponse=} [properties] Properties to set
-             */
-            function CreateTripResponse(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * CreateTripResponse trip.
-             * @member {rental.v1.ITripEntity|null|undefined} trip
-             * @memberof rental.v1.CreateTripResponse
-             * @instance
-             */
-            CreateTripResponse.prototype.trip = null;
-
-            /**
-             * Creates a CreateTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @function fromObject
-             * @memberof rental.v1.CreateTripResponse
-             * @static
-             * @param {Object.<string,*>} object Plain object
-             * @returns {rental.v1.CreateTripResponse} CreateTripResponse
-             */
-            CreateTripResponse.fromObject = function fromObject(object) {
-                if (object instanceof $root.rental.v1.CreateTripResponse)
-                    return object;
-                let message = new $root.rental.v1.CreateTripResponse();
-                if (object.trip != null) {
-                    if (typeof object.trip !== "object")
-                        throw TypeError(".rental.v1.CreateTripResponse.trip: object expected");
-                    message.trip = $root.rental.v1.TripEntity.fromObject(object.trip);
-                }
-                return message;
-            };
-
-            /**
-             * Creates a plain object from a CreateTripResponse message. Also converts values to other types if specified.
-             * @function toObject
-             * @memberof rental.v1.CreateTripResponse
-             * @static
-             * @param {rental.v1.CreateTripResponse} message CreateTripResponse
-             * @param {$protobuf.IConversionOptions} [options] Conversion options
-             * @returns {Object.<string,*>} Plain object
-             */
-            CreateTripResponse.toObject = function toObject(message, options) {
-                if (!options)
-                    options = {};
-                let object = {};
-                if (options.defaults)
-                    object.trip = null;
-                if (message.trip != null && message.hasOwnProperty("trip"))
-                    object.trip = $root.rental.v1.TripEntity.toObject(message.trip, options);
-                return object;
-            };
-
-            /**
-             * Converts this CreateTripResponse to JSON.
-             * @function toJSON
-             * @memberof rental.v1.CreateTripResponse
-             * @instance
-             * @returns {Object.<string,*>} JSON object
-             */
-            CreateTripResponse.prototype.toJSON = function toJSON() {
-                return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-            };
-
-            return CreateTripResponse;
-        })();
-
         v1.GetTripRequest = (function() {
 
             /**
@@ -824,92 +766,6 @@ export const rental = $root.rental = (() => {
             };
 
             return GetTripRequest;
-        })();
-
-        v1.GetTripResponse = (function() {
-
-            /**
-             * Properties of a GetTripResponse.
-             * @memberof rental.v1
-             * @interface IGetTripResponse
-             * @property {rental.v1.ITrip|null} [trip] GetTripResponse trip
-             */
-
-            /**
-             * Constructs a new GetTripResponse.
-             * @memberof rental.v1
-             * @classdesc Represents a GetTripResponse.
-             * @implements IGetTripResponse
-             * @constructor
-             * @param {rental.v1.IGetTripResponse=} [properties] Properties to set
-             */
-            function GetTripResponse(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * GetTripResponse trip.
-             * @member {rental.v1.ITrip|null|undefined} trip
-             * @memberof rental.v1.GetTripResponse
-             * @instance
-             */
-            GetTripResponse.prototype.trip = null;
-
-            /**
-             * Creates a GetTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @function fromObject
-             * @memberof rental.v1.GetTripResponse
-             * @static
-             * @param {Object.<string,*>} object Plain object
-             * @returns {rental.v1.GetTripResponse} GetTripResponse
-             */
-            GetTripResponse.fromObject = function fromObject(object) {
-                if (object instanceof $root.rental.v1.GetTripResponse)
-                    return object;
-                let message = new $root.rental.v1.GetTripResponse();
-                if (object.trip != null) {
-                    if (typeof object.trip !== "object")
-                        throw TypeError(".rental.v1.GetTripResponse.trip: object expected");
-                    message.trip = $root.rental.v1.Trip.fromObject(object.trip);
-                }
-                return message;
-            };
-
-            /**
-             * Creates a plain object from a GetTripResponse message. Also converts values to other types if specified.
-             * @function toObject
-             * @memberof rental.v1.GetTripResponse
-             * @static
-             * @param {rental.v1.GetTripResponse} message GetTripResponse
-             * @param {$protobuf.IConversionOptions} [options] Conversion options
-             * @returns {Object.<string,*>} Plain object
-             */
-            GetTripResponse.toObject = function toObject(message, options) {
-                if (!options)
-                    options = {};
-                let object = {};
-                if (options.defaults)
-                    object.trip = null;
-                if (message.trip != null && message.hasOwnProperty("trip"))
-                    object.trip = $root.rental.v1.Trip.toObject(message.trip, options);
-                return object;
-            };
-
-            /**
-             * Converts this GetTripResponse to JSON.
-             * @function toJSON
-             * @memberof rental.v1.GetTripResponse
-             * @instance
-             * @returns {Object.<string,*>} JSON object
-             */
-            GetTripResponse.prototype.toJSON = function toJSON() {
-                return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-            };
-
-            return GetTripResponse;
         })();
 
         v1.GetTripsRequest = (function() {
@@ -1217,70 +1073,6 @@ export const rental = $root.rental = (() => {
             return UpdateTripRequest;
         })();
 
-        v1.UpdateTripResponse = (function() {
-
-            /**
-             * Properties of an UpdateTripResponse.
-             * @memberof rental.v1
-             * @interface IUpdateTripResponse
-             */
-
-            /**
-             * Constructs a new UpdateTripResponse.
-             * @memberof rental.v1
-             * @classdesc Represents an UpdateTripResponse.
-             * @implements IUpdateTripResponse
-             * @constructor
-             * @param {rental.v1.IUpdateTripResponse=} [properties] Properties to set
-             */
-            function UpdateTripResponse(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * Creates an UpdateTripResponse message from a plain object. Also converts values to their respective internal types.
-             * @function fromObject
-             * @memberof rental.v1.UpdateTripResponse
-             * @static
-             * @param {Object.<string,*>} object Plain object
-             * @returns {rental.v1.UpdateTripResponse} UpdateTripResponse
-             */
-            UpdateTripResponse.fromObject = function fromObject(object) {
-                if (object instanceof $root.rental.v1.UpdateTripResponse)
-                    return object;
-                return new $root.rental.v1.UpdateTripResponse();
-            };
-
-            /**
-             * Creates a plain object from an UpdateTripResponse message. Also converts values to other types if specified.
-             * @function toObject
-             * @memberof rental.v1.UpdateTripResponse
-             * @static
-             * @param {rental.v1.UpdateTripResponse} message UpdateTripResponse
-             * @param {$protobuf.IConversionOptions} [options] Conversion options
-             * @returns {Object.<string,*>} Plain object
-             */
-            UpdateTripResponse.toObject = function toObject() {
-                return {};
-            };
-
-            /**
-             * Converts this UpdateTripResponse to JSON.
-             * @function toJSON
-             * @memberof rental.v1.UpdateTripResponse
-             * @instance
-             * @returns {Object.<string,*>} JSON object
-             */
-            UpdateTripResponse.prototype.toJSON = function toJSON() {
-                return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-            };
-
-            return UpdateTripResponse;
-        })();
-
         v1.TripService = (function() {
 
             /**
@@ -1305,7 +1097,7 @@ export const rental = $root.rental = (() => {
              * @typedef CreateTripCallback
              * @type {function}
              * @param {Error|null} error Error, if any
-             * @param {rental.v1.CreateTripResponse} [response] CreateTripResponse
+             * @param {rental.v1.TripEntity} [response] TripEntity
              */
 
             /**
@@ -1314,12 +1106,12 @@ export const rental = $root.rental = (() => {
              * @memberof rental.v1.TripService
              * @instance
              * @param {rental.v1.ICreateTripRequest} request CreateTripRequest message or plain object
-             * @param {rental.v1.TripService.CreateTripCallback} callback Node-style callback called with the error, if any, and CreateTripResponse
+             * @param {rental.v1.TripService.CreateTripCallback} callback Node-style callback called with the error, if any, and TripEntity
              * @returns {undefined}
              * @variation 1
              */
             Object.defineProperty(TripService.prototype.createTrip = function createTrip(request, callback) {
-                return this.rpcCall(createTrip, $root.rental.v1.CreateTripRequest, $root.rental.v1.CreateTripResponse, request, callback);
+                return this.rpcCall(createTrip, $root.rental.v1.CreateTripRequest, $root.rental.v1.TripEntity, request, callback);
             }, "name", { value: "CreateTrip" });
 
             /**
@@ -1328,7 +1120,7 @@ export const rental = $root.rental = (() => {
              * @memberof rental.v1.TripService
              * @instance
              * @param {rental.v1.ICreateTripRequest} request CreateTripRequest message or plain object
-             * @returns {Promise<rental.v1.CreateTripResponse>} Promise
+             * @returns {Promise<rental.v1.TripEntity>} Promise
              * @variation 2
              */
 
@@ -1338,7 +1130,7 @@ export const rental = $root.rental = (() => {
              * @typedef GetTripCallback
              * @type {function}
              * @param {Error|null} error Error, if any
-             * @param {rental.v1.GetTripResponse} [response] GetTripResponse
+             * @param {rental.v1.Trip} [response] Trip
              */
 
             /**
@@ -1347,12 +1139,12 @@ export const rental = $root.rental = (() => {
              * @memberof rental.v1.TripService
              * @instance
              * @param {rental.v1.IGetTripRequest} request GetTripRequest message or plain object
-             * @param {rental.v1.TripService.GetTripCallback} callback Node-style callback called with the error, if any, and GetTripResponse
+             * @param {rental.v1.TripService.GetTripCallback} callback Node-style callback called with the error, if any, and Trip
              * @returns {undefined}
              * @variation 1
              */
             Object.defineProperty(TripService.prototype.getTrip = function getTrip(request, callback) {
-                return this.rpcCall(getTrip, $root.rental.v1.GetTripRequest, $root.rental.v1.GetTripResponse, request, callback);
+                return this.rpcCall(getTrip, $root.rental.v1.GetTripRequest, $root.rental.v1.Trip, request, callback);
             }, "name", { value: "GetTrip" });
 
             /**
@@ -1361,7 +1153,7 @@ export const rental = $root.rental = (() => {
              * @memberof rental.v1.TripService
              * @instance
              * @param {rental.v1.IGetTripRequest} request GetTripRequest message or plain object
-             * @returns {Promise<rental.v1.GetTripResponse>} Promise
+             * @returns {Promise<rental.v1.Trip>} Promise
              * @variation 2
              */
 
