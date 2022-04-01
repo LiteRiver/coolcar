@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -24,10 +25,17 @@ type UpdatedAtField struct {
 var NewObjectId = primitive.NewObjectID
 
 func NewObjIdWithValue(id fmt.Stringer) {
-	NewObjectId = func () primitive.ObjectID {
+	NewObjectId = func() primitive.ObjectID {
 		return objid.EnsureObjId(id)
 	}
 }
+
 var UpdatedAt = func() int64 {
 	return time.Now().UnixNano()
+}
+
+func Set(s interface{}) bson.M {
+	return bson.M{
+		"$set": s,
+	}
 }

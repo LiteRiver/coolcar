@@ -18,3 +18,12 @@ db.trips.createIndex(
     },
   },
 );
+
+db.profile.createIndex(
+  {
+    accountid: 1,
+  },
+  {
+    unique: true,
+  },
+);

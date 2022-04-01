@@ -7,13 +7,15 @@ import (
 	"coolcar/rental/trip"
 	"coolcar/rental/trip/client/car"
 	"coolcar/rental/trip/client/poi"
-	"coolcar/rental/trip/client/profile"
-	"coolcar/rental/trip/dao"
+	profileCli "coolcar/rental/trip/client/profile"
+	tripDao "coolcar/rental/trip/dao"
 	coolenvpb "coolcar/shared/coolenv"
 	"coolcar/shared/server"
 	"log"
 	"os"
 
+	"coolcar/rental/profile"
+	profileDao "coolcar/rental/profile/dao"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -61,18 +63,27 @@ func main() {
 			AuthPublicKeyPath: "shared/auth/public.key",
 			Logger:            logger,
 			RegisterFunc: func(s *grpc.Server) {
+				db := mgoClient.Database("coolcar")
 				rentalpb.RegisterTripServiceServer(
 					s,
 					&trip.Service{
 						Logger:         logger,
-						ProfileManager: &profile.Manager{},
+						ProfileManager: &profileCli.Manager{},
 						CarManager:     &car.Manager{},
 						PointManager:   &poi.Manager{},
-						Mongo:          dao.Use(mgoClient.Database("coolcar")),
+						Mongo:          tripDao.Use(db),
 						DistanceCalc: &ai.Client{
 							AIClient: coolenvpb.NewAIServiceClient(conn),
 						},
 					})
+
+				rentalpb.RegisterProfileServiceServer(
+					s,
+					&profile.Service{
+						Logger: logger,
+						Mongo:  profileDao.Use(db),
+					},
+				)
 			},
 		}),
 	)
