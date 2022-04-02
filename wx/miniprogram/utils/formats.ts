@@ -1,4 +1,9 @@
 export namespace formats {
+
+  export function padStartZero(n: number, len: number) {
+    return n.toFixed(0).padStart(len, '0')
+  }
+
   export function formatDuration(sec: number) {
     const padStr = (n: number) => {
       return n.toFixed(0).padStart(2, '0')

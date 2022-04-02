@@ -5,6 +5,8 @@ import (
 	rentalpb "coolcar/rental/api/gen/v1"
 	"coolcar/rental/profile/dao"
 	"coolcar/shared/auth"
+	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -36,7 +38,11 @@ func (s *Service) GetProfile(ctx context.Context, req *rentalpb.GetProfileReques
 	return profile, nil
 }
 
+// TODO: always receive empty Identity
 func (s *Service) SubmitProfile(ctx context.Context, identity *rentalpb.Identity) (*rentalpb.Profile, error) {
+	fmt.Println("--------------------------------------------------")
+	fmt.Printf("received identity: %+v\n", identity)
+	fmt.Println("--------------------------------------------------")
 	accountId, err := auth.AccountIdFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -50,6 +56,16 @@ func (s *Service) SubmitProfile(ctx context.Context, identity *rentalpb.Identity
 		s.Logger.Error("cannot update profile", zap.Error(err))
 		return nil, status.Error(codes.Internal, "")
 	}
+	go func() {
+		time.Sleep(3 * time.Second)
+		err := s.Mongo.UpdateProfile(context.Background(), accountId, rentalpb.IdentityStatus_PENDING, &rentalpb.Profile{
+			Identity:       identity,
+			IdentityStatus: rentalpb.IdentityStatus_VERIFIED,
+		})
+		if err != nil {
+			s.Logger.Error("cannot verify identity: %v", zap.Error(err))
+		}
+	}()
 	return profile, nil
 }
 func (s *Service) ClearProfile(ctx context.Context, req *rentalpb.ClearProfileRequest) (*rentalpb.Profile, error) {
