@@ -1,4 +1,5 @@
 import { IAppOption } from '../../app-option'
+import { ProfileService } from '../../services/profile'
 import { rental } from '../../services/proto-gen/rental/rental-pb'
 import { TripService } from '../../services/trip'
 import { routing } from '../../utils/routing'
@@ -111,12 +112,20 @@ Page({
     }
     wx.scanCode({
       success: async () => {
-        await this.selectComponent('#licModal').showModal()
         const carId = 'car123'
-        const redirectURL = routing.unlock({ carId })
-        wx.navigateTo({
-          url: routing.registration({ redirectURL }),
-        })
+        const unlockUrl = routing.unlock({ carId })
+
+        const profile = await ProfileService.get()
+        if (profile.identityStatus === rental.v1.IdentityStatus.VERIFIED) {
+          wx.navigateTo({
+            url: unlockUrl,
+          })
+        } else {
+          await this.selectComponent('#licModal').showModal()
+          wx.navigateTo({
+            url: routing.registration({ redirectURL: unlockUrl }),
+          })
+        }
       },
       fail: console.error,
     })

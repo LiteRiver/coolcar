@@ -1,4 +1,5 @@
 import { IAppOption } from '../../app-option'
+import { ProfileService } from '../../services/profile'
 import { rental } from '../../services/proto-gen/rental/rental-pb'
 import { TripService } from '../../services/trip'
 import { consts } from '../../utils/consts'
@@ -46,6 +47,12 @@ const tripStatusMap = new Map([
 
 const app = getApp<IAppOption>()
 
+const IdentityStatusMapping = new Map([
+  [rental.v1.IdentityStatus.UNSUBMITTED, '未认证'],
+  [rental.v1.IdentityStatus.PENDING, '认证中'],
+  [rental.v1.IdentityStatus.VERIFIED, '已认证'],
+])
+
 Page({
   scrollStates: {
     mainItems: [] as MainItemState[],
@@ -66,6 +73,7 @@ Page({
     navItems: [] as NavItem[],
     mainScroll: '',
     navScroll: '',
+    identityStatus: IdentityStatusMapping.get(rental.v1.IdentityStatus.UNSUBMITTED),
   },
   onLoad() {
     const layoutReady = new Promise((resolve) => {
@@ -99,6 +107,13 @@ Page({
         )
       })
       .exec()
+  },
+  async onShow() {
+    const profile = await ProfileService.get()
+    console.log(IdentityStatusMapping.get(profile.identityStatus))
+    this.setData({
+      identityStatus: IdentityStatusMapping.get(profile.identityStatus),
+    })
   },
   onGetUserProfile() {
     wxapi.getUserProfile().then((res) => {

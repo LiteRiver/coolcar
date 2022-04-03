@@ -37,7 +37,6 @@ Page({
     this.clearProfileRefresher()
   },
   renderProfile(profile: rental.v1.IProfile) {
-    console.log(profile)
     this.setData({
       licenseNo: profile.identity?.licenseNumber || '',
       name: profile.identity?.name || '',
@@ -107,7 +106,11 @@ Page({
     }
   },
   async onResubmit() {
-    await ProfileService.clear()
+    const profile = await ProfileService.clear()
+    this.renderProfile(profile)
+    this.setData({
+      driverLicenseUrl: '',
+    })
   },
   onVerified() {
     if (this.redirectURL) {

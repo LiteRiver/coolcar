@@ -5,7 +5,6 @@ import (
 	rentalpb "coolcar/rental/api/gen/v1"
 	"coolcar/rental/profile/dao"
 	"coolcar/shared/auth"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,9 +39,6 @@ func (s *Service) GetProfile(ctx context.Context, req *rentalpb.GetProfileReques
 
 // TODO: always receive empty Identity
 func (s *Service) SubmitProfile(ctx context.Context, identity *rentalpb.Identity) (*rentalpb.Profile, error) {
-	fmt.Println("--------------------------------------------------")
-	fmt.Printf("received identity: %+v\n", identity)
-	fmt.Println("--------------------------------------------------")
 	accountId, err := auth.AccountIdFromContext(ctx)
 	if err != nil {
 		return nil, err

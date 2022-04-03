@@ -64,25 +64,30 @@ func main() {
 			Logger:            logger,
 			RegisterFunc: func(s *grpc.Server) {
 				db := mgoClient.Database("coolcar")
+				profileService := &profile.Service{
+					Logger: logger,
+					Mongo:  profileDao.Use(db),
+				}
+
 				rentalpb.RegisterTripServiceServer(
 					s,
 					&trip.Service{
-						Logger:         logger,
-						ProfileManager: &profileCli.Manager{},
-						CarManager:     &car.Manager{},
-						PointManager:   &poi.Manager{},
-						Mongo:          tripDao.Use(db),
+						Logger: logger,
+						ProfileManager: &profileCli.Manager{
+							Provider: profileService,
+						},
+						CarManager:   &car.Manager{},
+						PointManager: &poi.Manager{},
+						Mongo:        tripDao.Use(db),
 						DistanceCalc: &ai.Client{
 							AIClient: coolenvpb.NewAIServiceClient(conn),
 						},
-					})
+					},
+				)
 
 				rentalpb.RegisterProfileServiceServer(
 					s,
-					&profile.Service{
-						Logger: logger,
-						Mongo:  profileDao.Use(db),
-					},
+					profileService,
 				)
 			},
 		}),
