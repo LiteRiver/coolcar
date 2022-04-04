@@ -52,15 +52,18 @@ Page({
           this.setData({
             driverLicenseUrl: res.tempFilePaths[0],
           })
-          // TODO: upload license image
-          setTimeout(() => {
-            this.setData({
-              licenseNo: '123412341234',
-              name: 'CLIVE ZHANG',
-              genderIndex: 1,
-              dateOfBirth: '1983-06-01',
-            })
-          }, 1000)
+
+          const data = wx.getFileSystemManager().readFileSync(res.tempFilePaths[0])
+          wx.request({
+            method: 'PUT',
+            url: 'https://clive-coolcar.oss-cn-beijing.aliyuncs.com/account1%2F624b039afb667cf59d03fb5a?Expires=1649084290&OSSAccessKeyId=LTAI5tGAFYJyTudvEvGf9wAW&Signature=ahbcLTmZvWSPlOzaQ%2B3epggONOU%3D',
+            data,
+            header: {
+              'Content-Type': 'application/octet-stream',
+            },
+            success: console.log,
+            fail: console.error,
+          })
         }
       },
     })

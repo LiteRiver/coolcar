@@ -1,34 +1,34 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
+	blobpb "coolcar/blob/api/gen/v1"
 	"fmt"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-type OpenIdResponse struct {
-	OpenId     string `json:"openid"`
-	SessionKey string `json:"session_key"`
-	UnionId    string `json:"unionid"`
-	ErrCode    int32  `json:"errcode"`
-	ErrMsg     string `json:"errmsg"`
-}
-
 func main() {
-	str := `{"session_key":"JFSocTxQMTxrqDxZ6PNbBA==","openid":"oYgrr5DYALhYUazmk6AnU_yxokq4", "errcode": 3, "errmsg": "err", "unionid": "unionid-test"}`
-	res := OpenIdResponse{}
-	fmt.Println(res.ErrCode)
-	err := json.Unmarshal([]byte(str), &res)
+	conn, err := grpc.Dial(
+		"localhost:8084",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("%T\n", res.ErrCode)
+	c := blobpb.NewBlobServiceClient(conn)
+	ctx := context.Background()
+	// res, err := c.CreateBlob(ctx, &blobpb.CreateBlobRequest{
+	// 	AccountId:           "account1",
+	// 	UploadUrlTimeoutSec: 1000,
+	// })
 
-	bytes, err := json.Marshal(&res)
+	res, err := c.GetBlobURL(ctx, &blobpb.GetBlobURLRequest{Id: "624b039afb667cf59d03fb5a", TimeoutSec: 3600})
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("------------------------------------")
-	fmt.Printf("%s\n", bytes)
+	fmt.Printf("%+v\n", res)
 }
