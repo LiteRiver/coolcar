@@ -17,6 +17,7 @@ const (
 	accountIdField      = "accountid"
 	profileField        = "profile"
 	identityStatusField = profileField + ".identitystatus"
+	photoBlobIdField    = "photoblobid"
 )
 
 type Mongo struct {
@@ -32,11 +33,12 @@ func Use(db *mongo.Database) *Mongo {
 }
 
 type ProfileRecord struct {
-	AccountId string            `bson:"accountid"`
-	Profile   *rentalpb.Profile `bson:"profile"`
+	AccountId   string            `bson:"accountid"`
+	Profile     *rentalpb.Profile `bson:"profile"`
+	PhotoBlobId string            `bson:"photoblobid"`
 }
 
-func (m *Mongo) GetProfile(c context.Context, accountId id.AccountId) (*rentalpb.Profile, error) {
+func (m *Mongo) GetProfile(c context.Context, accountId id.AccountId) (*ProfileRecord, error) {
 	res := m.col.FindOne(c, byAccountId(accountId))
 
 	if err := res.Err(); err != nil {
@@ -49,16 +51,22 @@ func (m *Mongo) GetProfile(c context.Context, accountId id.AccountId) (*rentalpb
 		return nil, fmt.Errorf("cannot decode profile record: %v", err)
 	}
 
-	return pr.Profile, nil
+	return &pr, nil
 }
 
 func (m *Mongo) UpdateProfile(c context.Context, accountId id.AccountId, prevStatus rentalpb.IdentityStatus, profile *rentalpb.Profile) error {
+	filter := bson.M{
+		identityStatusField: prevStatus,
+	}
+
+	if prevStatus == rentalpb.IdentityStatus_UNSUBMITTED {
+		filter = mgutil.ZeroOrNotExist(identityStatusField, prevStatus)
+	}
+
+	filter[accountIdField] = accountId.String()
 	_, err := m.col.UpdateOne(
 		c,
-		bson.M{
-			accountIdField:      accountId.String(),
-			identityStatusField: prevStatus,
-		},
+		filter,
 		mgutil.Set(bson.M{
 			accountIdField: accountId.String(),
 			profileField:   profile,
@@ -67,6 +75,23 @@ func (m *Mongo) UpdateProfile(c context.Context, accountId id.AccountId, prevSta
 	)
 
 	return err
+}
+
+func (m *Mongo) UpdateProfilePhoto(c context.Context, accountId id.AccountId, blobId id.BlobId) error {
+	_, err := m.col.UpdateOne(
+		c,
+		bson.M{
+			accountIdField: accountId.String(),
+		},
+		mgutil.Set(bson.M{
+			accountIdField:   accountId.String(),
+			photoBlobIdField: blobId.String(),
+		}),
+		options.Update().SetUpsert(true),
+	)
+
+	return err
+
 }
 
 func byAccountId(accountId id.AccountId) bson.M {

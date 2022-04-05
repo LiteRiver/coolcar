@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	blobpb "coolcar/blob/api/gen/v1"
 	"coolcar/rental/ai"
 	rentalpb "coolcar/rental/api/gen/v1"
 	"coolcar/rental/trip"
@@ -13,9 +14,11 @@ import (
 	"coolcar/shared/server"
 	"log"
 	"os"
+	"time"
 
 	"coolcar/rental/profile"
 	profileDao "coolcar/rental/profile/dao"
+
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -64,9 +67,17 @@ func main() {
 			Logger:            logger,
 			RegisterFunc: func(s *grpc.Server) {
 				db := mgoClient.Database("coolcar")
+				blobConn, err := grpc.Dial("localhost:8084", grpc.WithTransportCredentials(insecure.NewCredentials()))
+				if err != nil {
+					logger.Fatal("cannot connect blob service", zap.Error(err))
+				}
+
 				profileService := &profile.Service{
-					Logger: logger,
-					Mongo:  profileDao.Use(db),
+					Logger:          logger,
+					Mongo:           profileDao.Use(db),
+					BlobClient:      blobpb.NewBlobServiceClient(blobConn),
+					PhotoGetExpires: 5 * time.Second,
+					PhotoPutExpires: 10 * time.Second,
 				}
 
 				rentalpb.RegisterTripServiceServer(

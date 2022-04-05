@@ -39,3 +39,18 @@ func Set(s interface{}) bson.M {
 		"$set": s,
 	}
 }
+
+func ZeroOrNotExist(field string, zero interface{}) bson.M {
+	return bson.M{
+		"$or": []bson.M{
+			{
+				field: zero,
+			},
+			{
+				field: bson.M{
+					"$exists": false,
+				},
+			},
+		},
+	}
+}

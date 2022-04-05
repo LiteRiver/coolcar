@@ -53,10 +53,7 @@ export namespace Coolcar {
 
     const wxRes = await wxLogin()
     const reqMs = Date.now()
-    const res = await sendRequest<
-      auth.v1.ILoginRequest,
-      auth.v1.ILoginResponse
-    >(
+    const res = await sendRequest<auth.v1.ILoginRequest, auth.v1.ILoginResponse>(
       {
         path: '/v1/auth/login',
         method: 'POST',
@@ -102,11 +99,7 @@ export namespace Coolcar {
           } else if (res.statusCode >= 400) {
             reject(res)
           } else {
-            resolve(
-              o.respMarshaller(
-                camelcaseKeys(res.data as object, { deep: true })
-              )
-            )
+            resolve(o.respMarshaller(camelcaseKeys(res.data as object, { deep: true })))
           }
         },
         fail: reject,
@@ -118,6 +111,32 @@ export namespace Coolcar {
     return new Promise((resolve, reject) => {
       return wx.login({
         success: resolve,
+        fail: reject,
+      })
+    })
+  }
+
+  export interface UploadFileOpts {
+    localPath: string
+    url: string
+  }
+  export async function uploadFile(opts: UploadFileOpts) {
+    const data = wx.getFileSystemManager().readFileSync(opts.localPath)
+    return new Promise((resolve, reject) => {
+      wx.request({
+        method: 'PUT',
+        url: opts.url,
+        data,
+        header: {
+          'Content-Type': 'application/octet-stream',
+        },
+        success: (res) => {
+          if (res.statusCode >= 400) {
+            reject(res)
+          } else {
+            resolve(undefined)
+          }
+        },
         fail: reject,
       })
     })

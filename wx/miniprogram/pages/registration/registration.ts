@@ -1,5 +1,6 @@
 import { ProfileService } from '../../services/profile'
 import { rental } from '../../services/proto-gen/rental/rental-pb'
+import { Coolcar } from '../../services/request'
 import { formats } from '../../utils/formats'
 import { routing } from '../../utils/routing'
 
@@ -30,41 +31,56 @@ Page({
     if (registrationOpts.redirect) {
       this.redirectURL = decodeURIComponent(registrationOpts.redirect)
     }
-    const profile = await ProfileService.get()
-    this.renderProfile(profile)
+
+    const photoRes = await ProfileService.getPhoto()
+    if (photoRes.url) {
+      this.setData({
+        driverLicenseUrl: photoRes.url || '',
+      })
+    }
+    const p = await ProfileService.get()
+    this.renderProfile(p)
   },
   onUnload() {
     this.clearProfileRefresher()
   },
   renderProfile(profile: rental.v1.IProfile) {
+    this.renderIdentity(profile.identity!)
     this.setData({
-      licenseNo: profile.identity?.licenseNumber || '',
-      name: profile.identity?.name || '',
-      genderIndex: profile.identity?.gender || 0,
-      dateOfBirth: formatDate(profile.identity?.dateOfBirthMs || 0),
       state: rental.v1.IdentityStatus[profile.identityStatus || 0],
+    })
+  },
+  renderIdentity(identity?: rental.v1.IIdentity) {
+    this.setData({
+      licenseNo: identity?.licenseNumber || '',
+      name: identity?.name || '',
+      genderIndex: identity?.gender || 0,
+      dateOfBirth: formatDate(identity?.dateOfBirthMs || 0),
     })
   },
   onUploadLicense() {
     wx.chooseImage({
-      success: (res) => {
-        if (res.tempFilePaths.length > 0) {
-          this.setData({
-            driverLicenseUrl: res.tempFilePaths[0],
-          })
-
-          const data = wx.getFileSystemManager().readFileSync(res.tempFilePaths[0])
-          wx.request({
-            method: 'PUT',
-            url: 'https://clive-coolcar.oss-cn-beijing.aliyuncs.com/account1%2F624b039afb667cf59d03fb5a?Expires=1649084290&OSSAccessKeyId=LTAI5tGAFYJyTudvEvGf9wAW&Signature=ahbcLTmZvWSPlOzaQ%2B3epggONOU%3D',
-            data,
-            header: {
-              'Content-Type': 'application/octet-stream',
-            },
-            success: console.log,
-            fail: console.error,
-          })
+      success: async (res) => {
+        if (res.tempFilePaths.length === 0) {
+          return
         }
+
+        this.setData({
+          driverLicenseUrl: res.tempFilePaths[0],
+        })
+
+        const photoRes = await ProfileService.createPhoto()
+        if (!photoRes.uploadUrl) {
+          return
+        }
+
+        await Coolcar.uploadFile({
+          localPath: res.tempFilePaths[0],
+          url: photoRes.uploadUrl,
+        })
+
+        const identity = await ProfileService.completePhoto()
+        this.renderIdentity(identity)
       },
     })
   },
@@ -108,11 +124,12 @@ Page({
       this.profileRefresher = 0
     }
   },
-  async onResubmit() {
-    const profile = await ProfileService.clear()
-    this.renderProfile(profile)
-    this.setData({
-      driverLicenseUrl: '',
+  onResubmit() {
+    ProfileService.clear().then((p) => this.renderProfile(p))
+    ProfileService.clearPhoto().then(() => {
+      this.setData({
+        driverLicenseUrl: '',
+      })
     })
   },
   onVerified() {
