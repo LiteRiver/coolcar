@@ -29,14 +29,20 @@ func (p *profileManager) Verify(ctx context.Context, accountId id.AccountId) (id
 type carManager struct {
 	verifyError error
 	unlockError error
+	// lockError   error
 }
 
 func (c *carManager) Verify(ctx context.Context, carId id.CarId, location *rentalpb.Location) error {
 	return c.verifyError
 }
 
-func (c *carManager) Unlock(ctx context.Context, carId id.CarId) error {
+func (c *carManager) Unlock(ctx context.Context, carId id.CarId, accountId id.AccountId, avatarUrl string, tripId id.TripId) error {
 	return c.unlockError
+}
+
+func (c *carManager) Lock(ctx context.Context, carId id.CarId) error {
+	// return c.lockError
+	return nil
 }
 
 type distanceCalc struct{}
@@ -150,10 +156,10 @@ func TestTripLifecycle(t *testing.T) {
 	tripId := id.TripId("61f2b7ef729f5d8d3bd69be7")
 	mgutil.NewObjIdWithValue(tripId)
 	cases := []struct {
-		name string
-		now  int64
-		op   func() (*rentalpb.Trip, error)
-		want string
+		name    string
+		now     int64
+		op      func() (*rentalpb.Trip, error)
+		want    string
 		wantErr bool
 	}{
 		{
@@ -211,7 +217,7 @@ func TestTripLifecycle(t *testing.T) {
 		},
 		{
 			name: "udpate_after_finished",
-			now: 50000,
+			now:  50000,
 			op: func() (*rentalpb.Trip, error) {
 				return s.UpdateTrip(ctx, &rentalpb.UpdateTripRequest{
 					Id: tripId.String(),
@@ -249,7 +255,7 @@ func TestTripLifecycle(t *testing.T) {
 
 		got := string(b)
 		if cc.want != got {
-			t.Errorf("%s: incorrect response; want: %s, got: %s", cc.name,  cc.want, got)
+			t.Errorf("%s: incorrect response; want: %s, got: %s", cc.name, cc.want, got)
 		}
 	}
 }

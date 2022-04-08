@@ -6,6 +6,7 @@ import (
 	"coolcar/rental/trip/dao"
 	"coolcar/shared/auth"
 	"coolcar/shared/id"
+	"coolcar/shared/mongo/objid"
 	"math/rand"
 	"time"
 
@@ -32,8 +33,9 @@ type ProfileManager interface {
 }
 
 type CarManager interface {
-	Verify(context.Context, id.CarId, *rentalpb.Location) error
-	Unlock(context.Context, id.CarId) error
+	Verify(ctx context.Context, carId id.CarId, location *rentalpb.Location) error
+	Unlock(ctx context.Context, carId id.CarId, accountId id.AccountId, avatarUrl string, tripId id.TripId) error
+	Lock(ctx context.Context, carId id.CarId) error
 }
 
 type PointManager interface {
@@ -126,7 +128,7 @@ func (s *Service) CreateTrip(ctx context.Context, req *rentalpb.CreateTripReques
 	}
 
 	go func() {
-		err := s.CarManager.Unlock(context.Background(), carId)
+		err := s.CarManager.Unlock(context.Background(), carId, accountId, req.AvatarUrl, objid.ToTripId(trip.Id))
 		if err != nil {
 			s.Logger.Error("cannot unlock car", zap.Error(err))
 		}
@@ -169,6 +171,10 @@ func (s *Service) UpdateTrip(ctx context.Context, req *rentalpb.UpdateTripReques
 	if req.EndTrip {
 		row.Trip.End = row.Trip.Current
 		row.Trip.Status = rentalpb.TripStatus_FINISHED
+		err := s.CarManager.Lock(ctx, id.CarId(row.Trip.CarId))
+		if err != nil {
+			return nil, status.Errorf(codes.FailedPrecondition, "cannot lock the car: %v", err)
+		}
 	}
 
 	s.Mongo.UpdateTrip(ctx, tripId, accountId, row.UpdatedAt, row.Trip)
