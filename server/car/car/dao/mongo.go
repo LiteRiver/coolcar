@@ -65,20 +65,10 @@ func (m *Mongo) GetCar(c context.Context, id id.CarId) (*CarRow, error) {
 		return nil, fmt.Errorf("invalid id: %v", err)
 	}
 	ret := m.col.FindOne(c, bson.M{
-		mgutil.IdFieldName: carId.String(),
+		mgutil.IdFieldName: carId,
 	})
 
-	if err := ret.Err(); err != nil {
-		return nil, err
-	}
-
-	var cr CarRow
-	err = ret.Decode(&cr)
-	if err != nil {
-		return nil, fmt.Errorf("cannot decode car row: %v", err)
-	}
-
-	return &cr, nil
+	return convertSingleResult(ret)
 }
 
 func (m *Mongo) GetCars(c context.Context) ([]*CarRow, error) {
@@ -110,10 +100,10 @@ type CarUpdate struct {
 	TripId       id.TripId
 }
 
-func (m *Mongo) UpdateCar(c context.Context, id id.CarId, prevStatus carpb.CarStatus, update *CarUpdate) error {
+func (m *Mongo) UpdateCar(c context.Context, id id.CarId, prevStatus carpb.CarStatus, update *CarUpdate) (*CarRow, error) {
 	objId, err := objid.FromId(id)
 	if err != nil {
-		return fmt.Errorf("invalid id: %v", err)
+		return nil, fmt.Errorf("invalid id: %v", err)
 	}
 
 	filter := bson.M{
@@ -141,14 +131,28 @@ func (m *Mongo) UpdateCar(c context.Context, id id.CarId, prevStatus carpb.CarSt
 		u[tripIdField] = update.TripId
 	}
 
-	res, err := m.col.UpdateOne(c, filter, mgutil.Set(u))
+	ret := m.col.FindOneAndUpdate(
+		c,
+		filter,
+		mgutil.Set(u),
+		options.
+			FindOneAndUpdate().
+			SetReturnDocument(options.After),
+	)
+
+	return convertSingleResult(ret)
+}
+
+func convertSingleResult(ret *mongo.SingleResult) (*CarRow, error) {
+	if err := ret.Err(); err != nil {
+		return nil, err
+	}
+
+	var cr CarRow
+	err := ret.Decode(&cr)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("cannot decode car row: %v", err)
 	}
 
-	if res.MatchedCount == 0 {
-		return mongo.ErrNoDocuments
-	}
-
-	return nil
+	return &cr, nil
 }

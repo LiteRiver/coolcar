@@ -112,7 +112,7 @@ Page({
     }
     wx.scanCode({
       success: async () => {
-        const carId = 'car123'
+        const carId = '62506608e4b8552ae0fa4ee0'
         const unlockUrl = routing.unlock({ carId })
 
         const profile = await ProfileService.get()

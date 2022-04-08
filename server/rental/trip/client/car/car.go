@@ -18,7 +18,7 @@ func (m *Manager) Verify(ctx context.Context, carId id.CarId, location *rentalpb
 		return fmt.Errorf("cannot get car: %v", err)
 	}
 
-	if car.Status != carpb.CarStatus_UNLOCKED {
+	if car.Status != carpb.CarStatus_LOCKED {
 		return fmt.Errorf("cannot unlock, car status is %v", car.Status)
 	}
 
