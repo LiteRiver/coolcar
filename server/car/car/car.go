@@ -99,10 +99,10 @@ func (s *Service) UnlockCar(ctx context.Context, in *carpb.UnlockCarRequest) (*c
 		if err == mongo.ErrNoDocuments {
 			code = codes.NotFound
 		}
-
-		s.publish(ctx, car)
 		return nil, status.Errorf(code, "cannot update: %v", err)
 	}
+
+	s.publish(ctx, car)
 
 	return &carpb.UnlockCarResponse{}, nil
 }
