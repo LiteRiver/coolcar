@@ -27,7 +27,7 @@ func RunUpdater(sub mq.Subscriber, ts rentalpb.TripServiceClient, logger *zap.Lo
 			_, err := ts.UpdateTrip(
 				context.Background(),
 				&rentalpb.UpdateTripRequest{
-					Id: car.Id,
+					Id: car.Car.TripId,
 					Current: &rentalpb.Location{
 						Latitude:  car.Car.Position.Latitude,
 						Longitude: car.Car.Position.Longitude,
