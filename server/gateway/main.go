@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"coolcar/auth/api/gen/v1"
+	carpb "coolcar/car/api/gen/v1"
 	rentalpb "coolcar/rental/api/gen/v1"
+	"coolcar/shared/auth"
 	"coolcar/shared/server"
 	"log"
 	"net/http"
+	"net/textproto"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
@@ -31,6 +34,12 @@ func main() {
 				MarshalOptions: protojson.MarshalOptions{UseEnumNumbers: true, UseProtoNames: true},
 			},
 		),
+		runtime.WithIncomingHeaderMatcher(func(s string) (string, bool) {
+			if s == textproto.CanonicalMIMEHeaderKey(runtime.MetadataHeaderPrefix+auth.ImpersonateAccountHeader) {
+				return "", false
+			}
+			return runtime.DefaultHeaderMatcher(s)
+		}),
 	)
 
 	serverConfigs := []struct {
@@ -52,6 +61,11 @@ func main() {
 			name:         "profile",
 			addr:         "localhost:8083",
 			registerFunc: rentalpb.RegisterProfileServiceHandlerFromEndpoint,
+		},
+		{
+			name:         "car",
+			addr:         "localhost: 8085",
+			registerFunc: carpb.RegisterCarServiceHandlerFromEndpoint,
 		},
 	}
 

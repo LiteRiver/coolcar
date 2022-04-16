@@ -1,4 +1,5 @@
 import { IAppOption } from '../../app-option'
+import { CarService } from '../../services/car'
 import { ProfileService } from '../../services/profile'
 import { rental } from '../../services/proto-gen/rental/rental-pb'
 import { TripService } from '../../services/trip'
@@ -6,6 +7,7 @@ import { routing } from '../../utils/routing'
 
 Page({
   isPageShowing: false,
+  socket: undefined as WechatMiniprogram.SocketTask | undefined,
   avatarUrl: '',
   carLocation: {
     latitude: 23.099994,
@@ -45,12 +47,26 @@ Page({
     ],
   },
   async onLoad() {
+    let msgReceived = 0
+    this.socket = CarService.subscribe((msg) => {
+      msgReceived++
+      console.log(msg)
+    })
+
+    setInterval(() => {
+      this.socket?.send({
+        data: JSON.stringify({
+          msg_received: msgReceived,
+        }),
+      })
+    }, 3000)
     const userInfo = await getApp<IAppOption>().globalData.userInfo
     this.setData({
       avatarUrl: userInfo.avatarUrl,
     })
   },
   onMyLocationTap() {
+    this.socket?.close({})
     wx.getLocation({
       type: 'gcj02',
       success: (res) => {

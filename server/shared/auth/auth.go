@@ -49,22 +49,42 @@ type interceptor struct {
 }
 
 const (
-	authorizationHeader = "authorization"
-	bearerPrefex        = "Bearer "
+	ImpersonateAccountHeader = "impersonate-account-id"
+	authorizationHeader      = "authorization"
+	bearerPrefex             = "Bearer "
 )
 
 func (i *interceptor) HandleReq(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	accountId := impersonationFromContext(ctx)
+	if accountId != "" {
+		fmt.Printf("impersonating %q\n", accountId)
+		return handler(ContextWithAccountId(ctx, id.AccountId(accountId)), req)
+	}
 	tkn, err := tokenFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "")
 	}
 
-	accountId, err := i.verifier.Verify(tkn)
+	accountId, err = i.verifier.Verify(tkn)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
 	}
 
 	return handler(ContextWithAccountId(ctx, id.AccountId(accountId)), req)
+}
+
+func impersonationFromContext(c context.Context) string {
+	m, ok := metadata.FromIncomingContext(c)
+	if !ok {
+		return ""
+	}
+
+	imp := m[ImpersonateAccountHeader]
+	if len(imp) == 0 {
+		return ""
+	}
+
+	return imp[0]
 }
 
 func tokenFromContext(ctx context.Context) (string, error) {
@@ -88,7 +108,6 @@ func tokenFromContext(ctx context.Context) (string, error) {
 }
 
 type accountIdKey struct{}
-
 
 func ContextWithAccountId(ctx context.Context, accountId id.AccountId) context.Context {
 	return context.WithValue(ctx, accountIdKey{}, accountId)

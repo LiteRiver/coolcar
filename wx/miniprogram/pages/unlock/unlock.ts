@@ -1,4 +1,6 @@
 import { IAppOption } from '../../app-option'
+import { CarService } from '../../services/car'
+import { car } from '../../services/proto-gen/car/car-pb'
 import { TripService } from '../../services/trip'
 import { consts } from '../../utils/consts'
 import { routing } from '../../utils/routing'
@@ -7,6 +9,7 @@ import { wxapi } from '../../utils/wxapi'
 const app = getApp<IAppOption>()
 
 Page({
+  carRefresher: 0,
   carId: '',
   data: {
     shareLocation: false,
@@ -31,28 +34,17 @@ Page({
     })
   },
   onShareLocationChanged(e: any) {
-    const shareLocation: boolean = e.detail.value
-    wx.setStorageSync(consts.ShareLocationKey, shareLocation)
-    this.setData({
-      shareLocation,
-    })
+    this.data.shareLocation = e.detail.value
+    wx.setStorageSync(consts.ShareLocationKey, this.data.shareLocation)
   },
   onUnlockClicked() {
     wx.getLocation({
       type: 'gcj02',
       success: async (loc) => {
-        console.log('starting a trip', {
-          location: {
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-          },
-          avatarUrl: this.data.shareLocation ? this.data.avatarUrl : '',
-        })
         if (!this.carId) {
           console.error('no carId specified')
           return
         }
-
         wx.showLoading({
           title: '开锁中',
           mask: true,
@@ -62,14 +54,21 @@ Page({
           const trip = await TripService.create({
             start: loc,
             carId: this.carId,
+            avatarUrl: this.data.shareLocation ? this.data.avatarUrl : '',
           })
           const tripId = trip.id
-          wx.redirectTo({
-            url: routing.driving({ tripId }),
-            complete: () => {
-              wx.hideLoading()
-            },
-          })
+          this.carRefresher = setInterval(async () => {
+            const c = await CarService.get(this.carId)
+            if (c.status === car.v1.CarStatus.UNLOCKED) {
+              this.clearCarRefresher()
+              wx.redirectTo({
+                url: routing.driving({ tripId }),
+                complete: () => {
+                  wx.hideLoading()
+                },
+              })
+            }
+          }, 2000)
         } catch (err) {
           wx.hideLoading()
           wx.showToast({
@@ -87,5 +86,15 @@ Page({
         })
       },
     })
+  },
+  onUnload() {
+    this.clearCarRefresher()
+    wx.hideLoading()
+  },
+  clearCarRefresher() {
+    if (this.carRefresher) {
+      clearInterval(this.carRefresher)
+      this.carRefresher = 0
+    }
   },
 })
