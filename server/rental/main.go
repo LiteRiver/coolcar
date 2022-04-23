@@ -14,13 +14,12 @@ import (
 	coolenvpb "coolcar/shared/coolenv"
 	"coolcar/shared/server"
 	"log"
-	"os"
 	"time"
 
 	"coolcar/rental/profile"
 	profileDao "coolcar/rental/profile/dao"
 
-	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -28,39 +27,32 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var addr = flag.String("addr", ":8083", "address to listen")
+var mongoURI = flag.String("mongo_uri", "mongodb://localhost:27017/coolcar", "mongo uri")
+var aiAddr = flag.String("ai_addr", "localhost:18001", "address of ai service")
+var carAddr = flag.String("car_addr", "localhost:8085", "address of car service")
+var authPublicKeyFile = flag.String("auth_public_key_file", "shared/auth/public.key", "public key file path")
+
 func main() {
+	flag.Parse()
+
 	logger, err := server.NewZapLogger()
 	if err != nil {
 		log.Fatalf("cannot create logger: %v\n", err)
 	}
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatalf("cannot load enviornment variables: %v\n", err)
-	}
-
-	appId := os.Getenv("APP_ID")
-	if len(appId) == 0 {
-		log.Fatal("APP_ID is empty")
-	}
-
-	secret := os.Getenv("SECRET")
-	if len(secret) == 0 {
-		log.Fatal("SECRET is empty")
-	}
-
 	ctx := context.Background()
-	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/coolcar"))
+	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(*mongoURI))
 	if err != nil {
 		logger.Fatal("cannot connect to database", zap.Error(err))
 	}
 
-	conn, err := grpc.Dial("localhost:18001", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(*aiAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("cannot connect aiservice", zap.Error(err))
 	}
 
-	carConn, err := grpc.Dial("localhost:8085", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	carConn, err := grpc.Dial(*carAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("cannot connect car service", zap.Error(err))
 	}
@@ -68,8 +60,8 @@ func main() {
 	logger.Sugar().Fatal(
 		server.RunGRPCServer(&server.GRPCConifg{
 			Name:              "rental",
-			Addr:              ":8083",
-			AuthPublicKeyPath: "shared/auth/public.key",
+			Addr:              *addr,
+			AuthPublicKeyPath: *authPublicKeyFile,
 			Logger:            logger,
 			RegisterFunc: func(s *grpc.Server) {
 				db := mgoClient.Database("coolcar")

@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blob
+  labels:
+    app: blob
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blob
+  template:
+    metadata:
+      labels:
+        app: blob
+    spec:
+      containers:
+        - name: blob
+          image: clivezhang/coolcar_blob:1.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: ADDR
+              value: :8081
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: mongo
+                  name: endpoints
+            - name: OSS_ADDR
+              valueFrom:
+                secretKeyRef:
+                  key: url
+                  name: oss
+            - name: OSS_ID
+              valueFrom:
+                secretKeyRef:
+                  key: secid
+                  name: oss
+            - name: OSS_SECRETS
+              valueFrom:
+                secretKeyRef:
+                  key: seckey
+                  name: oss
+          livenessProbe:
+            exec:
+              command: ["/bin/grpc-health-probe", "-addr", ":8081"]
+      imagePullSecrets:
+        - name: hub.docker.com
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blob
+spec:
+  selector:
+    app: blob
+  ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8081
+  type: ClusterIP

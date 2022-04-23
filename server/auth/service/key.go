@@ -9,10 +9,12 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 )
 
-type FilePrivateKeyProvider struct{}
+type FilePrivateKeyProvider struct {
+	PrivateKeyFile string
+}
 
 func (p *FilePrivateKeyProvider) GetPrivateKey() (*rsa.PrivateKey, error) {
-	f, err := os.Open("auth/private.key")
+	f, err := os.Open(p.PrivateKeyFile)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open private key file: %v", err)
 	}

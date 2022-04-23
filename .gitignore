@@ -3,3 +3,7 @@ miniprogram_npm
 .env
 private.key
 public.key
+*.code-workspace
+deployment/config/auth.yaml
+deployment/config/oos.yaml
+deployment/config/wechat.yaml

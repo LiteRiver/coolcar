@@ -17,6 +17,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/namsral/flag"
 	"github.com/streadway/amqp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -25,19 +26,29 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var addr = flag.String("addr", ":8085", "address to listen")
+var wsAddr = flag.String("ws_addr", ":9000", "websocket address to listen")
+var mongoURI = flag.String("mongo_uri", "mongodb://localhost:27017/coolcar", "mongo URI")
+var amqpURI = flag.String("amqp_uri", "amqp://guest:guest@localhost:5672", "amqp URI")
+var carAddr = flag.String("car_addr", "localhost:8085", "address of car service")
+var aiAddr = flag.String("ai_addr", "localhost:18001", "address of ai service")
+var tripAddr = flag.String("trip_addr", "localhost:8083", "address of trip service")
+
 func main() {
+	flag.Parse()
+
 	logger, err := server.NewZapLogger()
 	if err != nil {
 		log.Fatalf("cannot create logger: %v\n", err)
 	}
 
 	ctx := context.Background()
-	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/coolcar"))
+	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(*mongoURI))
 	if err != nil {
 		logger.Fatal("cannot connect to database", zap.Error(err))
 	}
 
-	amqpConn, err := amqp.Dial("amqp://guest:guest@localhost:5672")
+	amqpConn, err := amqp.Dial(*amqpURI)
 	if err != nil {
 		logger.Fatal("cannot dial dmqp", zap.Error(err))
 	}
@@ -48,12 +59,12 @@ func main() {
 		logger.Fatal("cannot create publisher", zap.Error(err))
 	}
 
-	carConn, err := grpc.Dial("localhost:8085", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	carConn, err := grpc.Dial(*carAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("cannot connect car service", zap.Error(err))
 	}
 
-	aiConn, err := grpc.Dial("localhost:18001", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	aiConn, err := grpc.Dial(*aiAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("cannot connect ai service", zap.Error(err))
 	}
@@ -86,7 +97,7 @@ func main() {
 		},
 	}
 
-	tripConn, err := grpc.Dial("localhost:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	tripConn, err := grpc.Dial(*tripAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("cannot connect trip service", zap.Error(err))
 	}
@@ -95,7 +106,7 @@ func main() {
 
 	http.HandleFunc("/ws", ws.Handler(u, carSub, logger))
 	go func() {
-		addr := ":9000"
+		addr := *wsAddr
 		logger.Info("HTTP server started.", zap.String("addr", addr))
 		logger.Sugar().Fatal(http.ListenAndServe(addr, nil))
 	}()
@@ -103,7 +114,7 @@ func main() {
 	logger.Sugar().Fatal(
 		server.RunGRPCServer(&server.GRPCConifg{
 			Name:   "car",
-			Addr:   ":8085",
+			Addr:   *addr,
 			Logger: logger,
 			RegisterFunc: func(s *grpc.Server) {
 				db := mgoClient.Database("coolcar")

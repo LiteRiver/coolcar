@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: car
+  labels:
+    app: car
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: car
+  template:
+    metadata:
+      labels:
+        app: car
+    spec:
+      containers:
+        - name: car
+          image: clivezhang/coolcar_car:1.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+            - containerPort: 8082
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: ADDR
+              value: :8081
+            - name: WS_ADDR
+              value: :8082
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: mongo
+                  name: endpoints
+            - name: AMQP_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: amqp
+                  name: endpoints
+            - name: CAR_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: car
+                  name: endpoints
+            - name: TRIP_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: trip
+                  name: endpoints
+            - name: AI_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: ai
+                  name: endpoints
+          livenessProbe:
+            exec:
+              command: ["/bin/grpc-health-probe", "-addr", ":8081"]
+      imagePullSecrets:
+        - name: hub.docker.com
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: car
+spec:
+  selector:
+    app: car
+  ports:
+    - port: 8081
+      protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-ws
+spec:
+  selector:
+    app: car
+  ports:
+    - port: 8088
+      targetPort: 8082
+      protocol: TCP
+  type: LoadBalancer

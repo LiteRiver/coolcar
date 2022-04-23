@@ -6,6 +6,8 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type GRPCConifg struct {
@@ -25,7 +27,7 @@ func RunGRPCServer(cfg *GRPCConifg) error {
 
 	opts := []grpc.ServerOption{}
 	if cfg.AuthPublicKeyPath != "" {
-		in, err := auth.Interceptor("shared/auth/public.key")
+		in, err := auth.Interceptor(cfg.AuthPublicKeyPath)
 		if err != nil {
 			cfg.Logger.Fatal("cannot create auth intercepter", zap.Error(err))
 		}
@@ -34,6 +36,7 @@ func RunGRPCServer(cfg *GRPCConifg) error {
 
 	svr := grpc.NewServer(opts...)
 
+	grpc_health_v1.RegisterHealthServer(svr, health.NewServer())
 	cfg.RegisterFunc(svr)
 	cfg.Logger.Info("server started", nameField, zap.String("addr", cfg.Addr))
 	return svr.Serve(lis)

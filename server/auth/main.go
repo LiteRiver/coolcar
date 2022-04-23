@@ -7,11 +7,11 @@ import (
 	"coolcar/auth/wechat"
 	"coolcar/shared/server"
 	"crypto/rsa"
+	"fmt"
 	"log"
-	"os"
 	"time"
 
-	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
@@ -19,33 +19,28 @@ import (
 	"google.golang.org/grpc"
 )
 
+var addr = flag.String("addr", ":8082", "address to listen")
+var mongoURI = flag.String("mongo_uri", "mongodb://localhost:27017/coolcar", "mongo URI")
+var privateKeyFile = flag.String("private_key_file", "auth/private.key", "private key file path")
+var wechatAppId = flag.String("wechat_app_id", "<wechat_app_id>", "wechat app id")
+var wechatSecret = flag.String("wechat_secret", "<wechat_secret>", "wechat secret")
+
 type PrivateKeyProvider interface {
 	GetPrivateKey(logger *zap.Logger) *rsa.PrivateKey
 }
 
 func main() {
+	flag.Parse()
+
+	fmt.Println("mongo_uri:", *mongoURI)
+
 	logger, err := server.NewZapLogger()
 	if err != nil {
 		log.Fatalf("cannot create logger: %v\n", err)
 	}
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatalf("cannot load enviornment variables: %v\n", err)
-	}
-
-	appId := os.Getenv("APP_ID")
-	if len(appId) == 0 {
-		log.Fatal("APP_ID is empty")
-	}
-
-	secret := os.Getenv("SECRET")
-	if len(secret) == 0 {
-		log.Fatal("SECRET is empty")
-	}
-
 	ctx := context.Background()
-	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/coolcar"))
+	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(*mongoURI))
 	if err != nil {
 		logger.Fatal("cannot connect to database", zap.Error(err))
 	}
@@ -53,7 +48,7 @@ func main() {
 	logger.Sugar().Fatal(
 		server.RunGRPCServer(&server.GRPCConifg{
 			Name:   "auth",
-			Addr:   ":8082",
+			Addr:   *addr,
 			Logger: logger,
 			RegisterFunc: func(s *grpc.Server) {
 				authpb.RegisterAuthServiceServer(
@@ -62,12 +57,14 @@ func main() {
 						Logger: logger,
 						Mongo:  dao.Use(mgoClient.Database("coolcar")),
 						OpenIdProvider: &wechat.Remote{
-							AppId:  appId,
-							Secret: secret,
+							AppId:  *wechatAppId,
+							Secret: *wechatSecret,
 						},
 						TokenGenerator: service.CreateTokenProvider(
 							"coolcar/auth",
-							&service.FilePrivateKeyProvider{},
+							&service.FilePrivateKeyProvider{
+								PrivateKeyFile: *privateKeyFile,
+							},
 						),
 						TokenExpiresIn: 2 * time.Hour,
 					},

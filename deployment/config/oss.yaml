@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oss
+type: Opaque
+stringData:
+  url: https://oss-cn-beijing.aliyuncs.com
+  secid: LTAI5tGAFYJyTudvEvGf9wAW
+  seckey: LBJdrGG7mUQOo8iYkiiN02iporBIFa

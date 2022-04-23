@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: clivezhang/coolcar_gateway:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: AUTH_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: auth
+                  name: endpoints
+            - name: TRIP_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: trip
+                  name: endpoints
+            - name: PROFILE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: profile
+                  name: endpoints
+            - name: CAR_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: car
+                  name: endpoints
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      imagePullSecrets:
+        - name: hub.docker.com
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8081
+  type: LoadBalancer

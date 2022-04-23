@@ -8,48 +8,35 @@ import (
 	"coolcar/blob/oss"
 	"coolcar/shared/server"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/namsral/flag"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
+var addr = flag.String("addr", ":8084", "address to listen")
+var mongoURI = flag.String("mongo_uri", "mongodb://localhost:27017/coolcar", "mongo URI")
+var ossAddr = flag.String("oss_addr", "<oss_addr>", "address of OSS")
+var ossId = flag.String("oss_id", "<oss_id>", "id of OSS")
+var ossSecrets = flag.String("oss_secrets", "<oss_secrets>", "secrets of OSS")
+
 func main() {
+	flag.Parse()
+
 	logger, err := server.NewZapLogger()
 	if err != nil {
 		log.Fatalf("cannot create logger: %v\n", err)
 	}
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatalf("cannot load enviornment variables: %v\n", err)
-	}
-
-	ossAddr := os.Getenv("OSS_ADDR")
-	if len(ossAddr) == 0 {
-		log.Fatal("OSS_ADDR is empty")
-	}
-
-	ossId := os.Getenv("OSS_ID")
-	if len(ossId) == 0 {
-		log.Fatal("OSS_ID is empty")
-	}
-
-	ossSecrets := os.Getenv("OSS_SECRETS")
-	if len(ossSecrets) == 0 {
-		log.Fatal("OSS_SECRETS is empty")
-	}
-
 	ctx := context.Background()
-	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017/coolcar"))
+	mgoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(*mongoURI))
 	if err != nil {
 		logger.Fatal("cannot connect to database", zap.Error(err))
 	}
 
-	st, err := oss.NewService(ossAddr, ossId, ossSecrets)
+	st, err := oss.NewService(*ossAddr, *ossId, *ossSecrets)
 	if err != nil {
 		logger.Fatal("cannot create OSS client", zap.Error(err))
 	}
@@ -57,15 +44,15 @@ func main() {
 	logger.Sugar().Fatal(
 		server.RunGRPCServer(&server.GRPCConifg{
 			Name:   "blob",
-			Addr:   ":8084",
+			Addr:   *addr,
 			Logger: logger,
 			RegisterFunc: func(s *grpc.Server) {
 				db := mgoClient.Database("coolcar")
 				blobpb.RegisterBlobServiceServer(
 					s,
 					&blob.Service{
-						OssId:      ossId,
-						OssSecrets: ossSecrets,
+						OssId:      *ossId,
+						OssSecrets: *ossSecrets,
 						Mongo:      dao.Use(db),
 						Storage:    st,
 						Logger:     logger,

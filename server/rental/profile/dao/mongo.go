@@ -27,7 +27,7 @@ type Mongo struct {
 
 func Use(db *mongo.Database) *Mongo {
 	return &Mongo{
-		col:         db.Collection("profile"),
+		col:         db.Collection("profiles"),
 		newObjectId: primitive.NewObjectID,
 	}
 }
