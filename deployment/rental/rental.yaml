@@ -47,9 +47,9 @@ spec:
           volumeMounts:
             - mountPath: /sec
               name: auth
-          livenessProbe:
-            exec:
-              command: ["/bin/grpc-health-probe", "-addr", ":8081"]
+          # livenessProbe:
+          #   exec:
+          #     command: ["/bin/grpc-health-probe", "-addr", ":8081"]
       imagePullSecrets:
         - name: hub.docker.com
       volumes:

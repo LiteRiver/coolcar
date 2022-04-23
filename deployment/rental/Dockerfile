@@ -10,4 +10,4 @@ FROM alpine:3.15
 COPY --from=builder /go/bin/rental /bin/rental
 COPY --from=builder /go/bin/grpc-health-probe /bin/grpc-health-probe
 EXPOSE 8081
-ENTRYPOINT ["/bin/rental"]
+CMD ["/bin/rental"]
