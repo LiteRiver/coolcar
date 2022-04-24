@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: car
+        version: v1.0.1
     spec:
       containers:
         - name: car
@@ -72,6 +73,7 @@ spec:
   ports:
     - port: 8081
       protocol: TCP
+      name: grpc
   type: ClusterIP
 
 ---
@@ -86,4 +88,5 @@ spec:
     - port: 8088
       targetPort: 8082
       protocol: TCP
+      name: http
   type: LoadBalancer

@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: blob
+        version: v1.0.1
     spec:
       containers:
         - name: blob
@@ -63,6 +64,7 @@ spec:
     app: blob
   ports:
     - port: 8081
+      name: grpc
       protocol: TCP
       targetPort: 8081
   type: ClusterIP

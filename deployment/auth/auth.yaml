@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: auth
+        version: v1.0.1
     spec:
       containers:
         - name: auth
@@ -70,6 +71,7 @@ spec:
     app: auth
   ports:
     - port: 8081
+      name: grpc
       protocol: TCP
       targetPort: 8081
   type: ClusterIP

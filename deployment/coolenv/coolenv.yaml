@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: coolenv
+        label: v1.2
     spec:
       containers:
         - name: coolenv
